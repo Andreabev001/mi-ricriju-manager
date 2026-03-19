@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Ricriju — Gestionale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --surface2: #f0ede6;
+  --border: #e2ddd5;
+  --border2: #ccc8bf;
+  --text: #1a1814;
+  --text2: #6b6660;
+  --text3: #a09c96;
+  --accent: #c8392b;
+  --accent-light: #fdf0ee;
+  --accent-border: #f0b8b2;
+  --green: #2d7a4f;
+  --green-light: #edf7f2;
+  --green-border: #a8d9be;
+  --amber: #b06a00;
+  --amber-light: #fef7ec;
+  --amber-border: #f5d49a;
+  --blue: #1a5fa8;
+  --blue-light: #edf4fc;
+  --blue-border: #aecef0;
+  --red: #c0392b;
+  --red-light: #fdf0ee;
+  --sidebar-w: 220px;
+  --topbar-h: 56px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ── LOGIN ────────────────────────────────────── */
+#login-screen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  transition: opacity .4s, transform .4s;
+}
+#login-screen.hidden { opacity: 0; pointer-events: none; transform: translateY(-16px); }
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 360px;
+  text-align: center;
+}
+.login-logo {
+  width: 48px; height: 48px;
+  background: var(--accent);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 22px; color: #fff; font-weight: 600;
+}
+.login-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; }
+
+.login-label { display: block; text-align: left; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+.login-input {
+  width: 100%; padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Mono', monospace; font-size: 18px; letter-spacing: 6px;
+  text-align: center; color: var(--text);
+  background: var(--bg);
+  outline: none; transition: border .2s;
+  margin-bottom: 20px;
+}
+.login-input:focus { border-color: var(--accent); background: var(--surface); }
+.login-btn {
+  width: 100%; padding: 11px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: background .15s;
+}
+.login-btn:hover { background: #a8301f; }
+.login-error { font-size: 12px; color: var(--red); margin-top: 10px; min-height: 16px; }
+
+/* ── APP SHELL ───────────────────────────────── */
+#app { display: flex; height: 100vh; opacity: 0; transition: opacity .4s; }
+#app.visible { opacity: 1; }
+
+/* ── SIDEBAR ─────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar-logo {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--accent); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.logo-text { font-size: 14px; font-weight: 600; color: var(--text); }
+.logo-sub { font-size: 11px; color: var(--text3); }
+
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.sidebar-nav::-webkit-scrollbar { width: 0; }
+
+.nav-section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .06em;
+  color: var(--text3); text-transform: uppercase;
+  padding: 12px 16px 4px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 16px; cursor: pointer;
+  font-size: 13px; color: var(--text2);
+  border-radius: 0; transition: background .1s, color .1s;
+  position: relative; user-select: none;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active {
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 500;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute; left: 0; top: 4px; bottom: 4px;
+  width: 3px; background: var(--accent);
+  border-radius: 0 3px 3px 0;
+}
+.nav-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 600;
+  padding: 1px 6px; border-radius: 10px; line-height: 1.6;
+}
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+.user-row { display: flex; align-items: center; gap: 10px; }
+.user-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent-light); border: 1px solid var(--accent-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+}
+.user-name { font-size: 13px; font-weight: 500; }
+.user-role { font-size: 11px; color: var(--text3); }
+.logout-btn {
+  margin-left: auto; cursor: pointer; color: var(--text3);
+  transition: color .15s; flex-shrink: 0;
+}
+.logout-btn:hover { color: var(--red); }
+
+/* ── MAIN ────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+.topbar {
+  height: var(--topbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; flex-shrink: 0;
+}
+.topbar-left { display: flex; flex-direction: column; }
+.page-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.page-breadcrumb { font-size: 11px; color: var(--text3); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.btn {
+  padding: 7px 14px; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background .15s, border-color .15s;
+  border: 1px solid var(--border2); background: var(--surface); color: var(--text);
+}
+.btn:hover { background: var(--bg); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.primary:hover { background: #a8301f; }
+
+.page-content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.page-content::-webkit-scrollbar { width: 6px; }
+.page-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── SEZIONI PAGINA ─────────────────────────── */
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* ── DASHBOARD ───────────────────────────────── */
+.greeting { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.greeting-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.stat-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1; margin-bottom: 6px; }
+.stat-delta { font-size: 12px; color: var(--green); }
+.stat-delta.down { color: var(--red); }
+.stat-delta.neutral { color: var(--text3); }
+
+.dash-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-bottom: 16px;
+}
+.dash-grid-3 {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.card-link { font-size: 12px; color: var(--accent); cursor: pointer; }
+.card-link:hover { text-decoration: underline; }
+
+/* ── LISTA PRENOTAZIONI DASHBOARD ─────────────── */
+.res-list { display: flex; flex-direction: column; gap: 0; }
+.res-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+}
+.res-row:last-child { border-bottom: none; padding-bottom: 0; }
+.res-name { font-size: 13px; font-weight: 500; }
+.res-detail { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.badge {
+  font-size: 11px; font-weight: 500; padding: 3px 9px;
+  border-radius: 20px; white-space: nowrap;
+}
+.badge.green { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+.badge.amber { background: var(--amber-light); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge.red { background: var(--red-light); color: var(--red); border: 1px solid var(--accent-border); }
+.badge.blue { background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-border); }
+
+/* ── AI BOX ──────────────────────────────────── */
+.ai-suggestion {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+  margin-bottom: 10px;
+}
+.ai-suggestion:last-child { margin-bottom: 0; }
+.ai-tag { font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+.ai-text { font-size: 12px; color: var(--text2); line-height: 1.55; }
+.ai-action { font-size: 11px; color: var(--accent); margin-top: 6px; cursor: pointer; }
+.ai-action:hover { text-decoration: underline; }
+
+/* ── CHECKLIST ───────────────────────────────── */
+.task-list { display: flex; flex-direction: column; gap: 0; }
+.task-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.task-row:last-child { border-bottom: none; padding-bottom: 0; }
+.task-check {
+  width: 16px; height: 16px; border-radius: 4px;
+  border: 1.5px solid var(--border2); flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.task-check.done { background: var(--green); border-color: var(--green); }
+.task-check.done::after { content: ''; display: block; width: 8px; height: 5px; border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: rotate(-45deg) translateY(-1px); }
+.task-text { font-size: 12px; color: var(--text); }
+.task-who { font-size: 11px; color: var(--text3); }
+
+/* ── ALLERTA MAGAZZINO ───────────────────────── */
+.alert-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.alert-row:last-child { border-bottom: none; padding-bottom: 0; }
+.alert-name { font-size: 13px; font-weight: 500; }
+.alert-detail { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+/* ── SEZIONI PLACEHOLDER ─────────────────────── */
+.placeholder-wrap {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 400px; gap: 12px; text-align: center;
+}
+.placeholder-icon {
+  width: 64px; height: 64px; border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  margin-bottom: 4px;
+}
+.placeholder-title { font-size: 18px; font-weight: 600; }
+.placeholder-sub { font-size: 13px; color: var(--text2); max-width: 340px; }
+.placeholder-badge {
+  font-size: 11px; font-weight: 500; padding: 4px 12px;
+  border-radius: 20px; background: var(--amber-light); color: var(--amber);
+  border: 1px solid var(--amber-border);
+}
+
+/* ── MOBILE SIDEBAR ──────────────────────────── */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.3); z-index: 200;
+}
+.menu-btn {
+  display: none; background: none; border: none; cursor: pointer;
+  padding: 4px; color: var(--text2);
+}
+
+@media (max-width: 768px) {
+  :root { --sidebar-w: 240px; }
+  .menu-btn { display: flex; }
+  .sidebar {
+    position: fixed; left: -260px; top: 0; bottom: 0; z-index: 300;
+    transition: left .25s;
+    box-shadow: 2px 0 20px rgba(0,0,0,.08);
+  }
+  .sidebar.open { left: 0; }
+  .sidebar-overlay.open { display: block; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .dash-grid { grid-template-columns: 1fr; }
+  .dash-grid-3 { grid-template-columns: 1fr; }
+  .topbar { padding: 0 16px; }
+  .page-content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">M</div>
+    <div class="login-title">Mi Ricriju</div>
+    <div class="login-sub">Accedi al gestionale</div>
+    <label class="login-label">Codice di accesso</label>
+    <input class="login-input" type="password" id="pwd-input" maxlength="12" placeholder="••••••••" autocomplete="off">
+    <button class="login-btn" onclick="doLogin()">Entra</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">M</div>
+      <div>
+        <div class="logo-text">Mi Ricriju</div>
+        <div class="logo-sub">Gestionale</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+        Dashboard
+      </div>
+
+      <div class="nav-section-label">Operativo</div>
+      <div class="nav-item" data-page="prenotazioni" onclick="goTo('prenotazioni',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 1v4M11 1v4M1 7h14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Prenotazioni
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" data-page="foodcost" onclick="goTo('foodcost',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Food cost
+      </div>
+      <div class="nav-item" data-page="magazzino" onclick="goTo('magazzino',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="4" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 1h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M8 7v3M6.5 8.5h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Magazzino
+        <span class="nav-badge">2</span>
+      </div>
+
+      <div class="nav-section-label">Staff</div>
+      <div class="nav-item" data-page="dipendenti" onclick="goTo('dipendenti',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M1 14c0-2.761 2.239-4 5-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="12" cy="5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M10 10c1.5 0 4 .8 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Dipendenti
+      </div>
+      <div class="nav-item" data-page="mansionario" onclick="goTo('mansionario',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 3h12M2 7h8M2 11h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Mansionario
+      </div>
+
+      <div class="nav-section-label">Clienti</div>
+      <div class="nav-item" data-page="fidelity" onclick="goTo('fidelity',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><polygon points="8,1 10.2,5.8 15,6.4 11.5,9.8 12.4,14.5 8,12.1 3.6,14.5 4.5,9.8 1,6.4 5.8,5.8" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" fill="none"/></svg>
+        Fidelity card
+      </div>
+      <div class="nav-item" data-page="recensioni" onclick="goTo('recensioni',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M13 1H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3l2 3 2-3h3a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        Recensioni
+      </div>
+      <div class="nav-item" data-page="marketing" onclick="goTo('marketing',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 10V6l9-4v12L2 10z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M11 5.5c1.5.5 2.5 1.8 2.5 3s-1 2.5-2.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5 10v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Marketing
+      </div>
+
+      <div class="nav-section-label">Gestione</div>
+      <div class="nav-item" data-page="fornitori" onclick="goTo('fornitori',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="9" width="14" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 9V6l4-4h2l4 4v3" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6 5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Fornitori
+      </div>
+      <div class="nav-item" data-page="statistiche" onclick="goTo('statistiche',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M1 12l4-4 3 2 4-5 3 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Statistiche + AI
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar">A</div>
+        <div>
+          <div class="user-name">Andrea</div>
+          <div class="user-role">Titolare</div>
+        </div>
+        <div class="logout-btn" onclick="doLogout()" title="Esci">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 8H2M6 5l-3 3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 3h5v10H8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-btn" onclick="openSidebar()">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <div class="topbar-left">
+          <div class="page-title" id="page-title">Dashboard</div>
+          <div class="page-breadcrumb" id="page-breadcrumb">Giovedì 19 marzo 2026</div>
+        </div>
+      </div>
+      <div class="topbar-right" id="topbar-actions">
+        <button class="btn primary" onclick="newPrenotazione()">+ Prenotazione</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- DASHBOARD -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="greeting" id="greeting-text">Buongiorno, Andrea</div>
+        <div class="greeting-sub" id="greeting-sub">Ecco il riepilogo di oggi</div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Prenotazioni oggi</div>
+            <div class="stat-value">12</div>
+            <div class="stat-delta">↑ +3 rispetto a ieri</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Coperti stasera</div>
+            <div class="stat-value">48</div>
+            <div class="stat-delta neutral">82% della capienza</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Food cost mese</div>
+            <div class="stat-value">28%</div>
+            <div class="stat-delta down">↑ +2% vs target</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Clienti fidelity</div>
+            <div class="stat-value">147</div>
+            <div class="stat-delta">↑ +5 questo mese</div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Prenotazioni di oggi</span>
+              <span class="card-link" onclick="goTo('prenotazioni',null)">Vedi tutte →</span>
+            </div>
+            <div class="res-list">
+              <div class="res-row">
+                <div>
+                  <div class="res-name">Famiglia Russo</div>
+                  <div class="res-detail">20:00 · 6 persone · Tavolo 4</div>
+                </div>
+                <span class="badge green">Confermata</span>
+              </div>
+              <div class="res-row">
+                <div>
+                  <div class="res-name">Marco Bianchi</div>
+                  <div class="res-detail">20:30 · 2 persone · Tavolo 1</div>
+                </div>
+                <span class="badge green">Confermata</span>
+              </div>
+              <div class="res-row">
+                <div>
+                  <div class="res-name">Gruppo aziendale</div>
+                  <div class="res-detail">21:00 · 12 persone · Sala privata</div>
+                </div>
+                <span class="badge amber">In attesa</span>
+              </div>
+              <div class="res-row">
+                <div>
+                  <div class="res-name">Anna De Luca</div>
+                  <div class="res-detail">19:30 · 4 persone · Tavolo 7</div>
+                </div>
+                <span class="badge green">Confermata</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">AI assistant</span>
+              <span class="card-link" onclick="goTo('statistiche',null)">Apri →</span>
+            </div>
+            <div class="ai-suggestion">
+              <div class="ai-tag">Suggerimento food cost</div>
+              <div class="ai-text">La pizza margherita ha un food cost del 34%, sopra il target del 30%. Considera +0,50€ sul prezzo o rinegozia la farina.</div>
+              <div class="ai-action" onclick="goTo('foodcost',null)">Vai al food cost →</div>
+            </div>
+            <div class="ai-suggestion">
+              <div class="ai-tag">Previsione weekend</div>
+              <div class="ai-text">Sabato sera alta probabilità sold out. Consiglio di aprire un secondo turno dalle 21:30.</div>
+              <div class="ai-action" onclick="goTo('prenotazioni',null)">Gestisci prenotazioni →</div>
+            </div>
+            <div class="ai-suggestion">
+              <div class="ai-tag">Magazzino</div>
+              <div class="ai-text">Farina 00 quasi esaurita (4 kg rimasti). Ordine consigliato entro domani.</div>
+              <div class="ai-action" onclick="goTo('magazzino',null)">Vai al magazzino →</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-grid" style="margin-top:16px">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Checklist turno serale</span>
+              <span class="card-link" onclick="goTo('mansionario',null)">Mansionario →</span>
+            </div>
+            <div class="task-list">
+              <div class="task-row">
+                <div class="task-check done" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Mise en place sala completata</div>
+                  <div class="task-who">Luigi · 17:30</div>
+                </div>
+              </div>
+              <div class="task-row">
+                <div class="task-check done" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Temperature frigo verificate</div>
+                  <div class="task-who">Sara · 17:45</div>
+                </div>
+              </div>
+              <div class="task-row">
+                <div class="task-check" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Cassa aperta e verificata</div>
+                  <div class="task-who">Da assegnare</div>
+                </div>
+              </div>
+              <div class="task-row">
+                <div class="task-check" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Scorte magazzino verificate</div>
+                  <div class="task-who">Da assegnare</div>
+                </div>
+              </div>
+              <div class="task-row">
+                <div class="task-check" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Menu speciale aggiornato</div>
+                  <div class="task-who">Da assegnare</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Allerta magazzino</span>
+              <span class="card-link" onclick="goTo('magazzino',null)">Gestisci →</span>
+            </div>
+            <div class="res-list">
+              <div class="alert-row">
+                <div>
+                  <div class="alert-name">Farina 00</div>
+                  <div class="alert-detail">Rimasti 4 kg · minimo 10 kg</div>
+                </div>
+                <span class="badge red">Esaurito</span>
+              </div>
+              <div class="alert-row">
+                <div>
+                  <div class="alert-name">Pomodoro San Marzano</div>
+                  <div class="alert-detail">6 lattine · minimo 12</div>
+                </div>
+                <span class="badge amber">Basso</span>
+              </div>
+              <div class="alert-row">
+                <div>
+                  <div class="alert-name">Mozzarella fior di latte</div>
+                  <div class="alert-detail">2 kg rimasti · minimo 5 kg</div>
+                </div>
+                <span class="badge amber">Basso</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRENOTAZIONI -->
+      <div class="page-section" id="page-prenotazioni">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">📅</div>
+          <div class="placeholder-title">Prenotazioni</div>
+          <div class="placeholder-sub">Questa sezione integrerà la tua app prenotazioni esistente (andreabev001.github.io/prenotazioni-ristorante) con tutte le funzionalità già costruite.</div>
+          <span class="placeholder-badge">In integrazione — Fase 1</span>
+          <button class="btn primary" style="margin-top:8px" onclick="window.open('https://andreabev001.github.io/prenotazioni-ristorante','_blank')">Apri app prenotazioni →</button>
+        </div>
+      </div>
+
+      <!-- FOOD COST -->
+      <div class="page-section" id="page-foodcost">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">🍕</div>
+          <div class="placeholder-title">Food cost</div>
+          <div class="placeholder-sub">Questa sezione integrerà la tua app food cost esistente (andreabev001.github.io/Food-cost) con piatti, ingredienti, costi fissi e analisi.</div>
+          <span class="placeholder-badge">In integrazione — Fase 1</span>
+          <button class="btn primary" style="margin-top:8px" onclick="window.open('https://andreabev001.github.io/Food-cost','_blank')">Apri app food cost →</button>
+        </div>
+      </div>
+
+      <!-- MAGAZZINO -->
+      <div class="page-section" id="page-magazzino">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">📦</div>
+          <div class="placeholder-title">Magazzino</div>
+          <div class="placeholder-sub">Gestione scorte, alert quantità minima, carico e scarico prodotti, storico movimenti e ordini ai fornitori.</div>
+          <span class="placeholder-badge">In costruzione — Fase 5</span>
+        </div>
+      </div>
+
+      <!-- DIPENDENTI -->
+      <div class="page-section" id="page-dipendenti">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">👥</div>
+          <div class="placeholder-title">Dipendenti</div>
+          <div class="placeholder-sub">Gestione turni, presenze, permessi e contatti per tutto il personale di Mi Ricriju.</div>
+          <span class="placeholder-badge">In costruzione — Fase 5</span>
+        </div>
+      </div>
+
+      <!-- MANSIONARIO -->
+      <div class="page-section" id="page-mansionario">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">📋</div>
+          <div class="placeholder-title">Mansionario</div>
+          <div class="placeholder-sub">Checklist per ogni ruolo (cucina, sala, cassa), compiti per turno e guida per i nuovi dipendenti.</div>
+          <span class="placeholder-badge">Prossima — Fase 2</span>
+        </div>
+      </div>
+
+      <!-- FIDELITY -->
+      <div class="page-section" id="page-fidelity">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">⭐</div>
+          <div class="placeholder-title">Fidelity card</div>
+          <div class="placeholder-sub">Assegna punti per visita, recensione e referral. I clienti possono vedere il loro saldo via numero di telefono.</div>
+          <span class="placeholder-badge">In costruzione — Fase 4</span>
+        </div>
+      </div>
+
+      <!-- RECENSIONI -->
+      <div class="page-section" id="page-recensioni">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">💬</div>
+          <div class="placeholder-title">Raccolta recensioni</div>
+          <div class="placeholder-sub">QR code da mostrare al tavolo, link diretto a Google e TripAdvisor, raccolta feedback interni.</div>
+          <span class="placeholder-badge">In costruzione — Fase 4</span>
+        </div>
+      </div>
+
+      <!-- MARKETING -->
+      <div class="page-section" id="page-marketing">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">📣</div>
+          <div class="placeholder-title">Marketing</div>
+          <div class="placeholder-sub">Crea promo, offerte speciali e messaggi per i clienti. Genera contenuti per i social con l'AI.</div>
+          <span class="placeholder-badge">Prossima — Fase 2</span>
+        </div>
+      </div>
+
+      <!-- FORNITORI -->
+      <div class="page-section" id="page-fornitori">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">🏭</div>
+          <div class="placeholder-title">Fornitori</div>
+          <div class="placeholder-sub">Rubrica fornitori, storico ordini, prezzi aggiornati e contatti rapidi per gli ordini settimanali.</div>
+          <span class="placeholder-badge">In costruzione — Fase 5</span>
+        </div>
+      </div>
+
+      <!-- STATISTICHE + AI -->
+      <div class="page-section" id="page-statistiche">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">📊</div>
+          <div class="placeholder-title">Statistiche + AI</div>
+          <div class="placeholder-sub">Grafici di prenotazioni, food cost, trend mensili e suggerimenti intelligenti generati dall'AI di Anthropic.</div>
+          <span class="placeholder-badge">In costruzione — Fase 3</span>
+        </div>
+      </div>
+
+    </div><!-- end page-content -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
+<script>
+// Password hash SHA-256 — non è la password in chiaro
+const PWD_HASH = '842bf9e19453a95c665f537b745b3b10a76f3be6fb82bedf829544223b449754';
+// Sessione
+const SESSION_KEY = 'mriju_session';
+const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 ore
+let loginAttempts = 0;
+let lockUntil = 0;
+
+async function hashString(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function checkSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if (s && s.exp > Date.now()) {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app').classList.add('visible');
+      setGreeting();
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+const PAGE_META = {
+  dashboard:    { title: 'Dashboard',        breadcrumb: null, actions: '<button class="btn primary" onclick="newPrenotazione()">+ Prenotazione</button>' },
+  prenotazioni: { title: 'Prenotazioni',     breadcrumb: 'Gestione prenotazioni', actions: '<button class="btn primary" onclick="newPrenotazione()">+ Prenotazione</button>' },
+  foodcost:     { title: 'Food cost',        breadcrumb: 'Analisi costi', actions: '' },
+  magazzino:    { title: 'Magazzino',        breadcrumb: 'Scorte e movimenti', actions: '<button class="btn primary">+ Prodotto</button>' },
+  dipendenti:   { title: 'Dipendenti',       breadcrumb: 'Turni e staff', actions: '<button class="btn primary">+ Dipendente</button>' },
+  mansionario:  { title: 'Mansionario',      breadcrumb: 'Compiti e checklist', actions: '<button class="btn primary">+ Compito</button>' },
+  fidelity:     { title: 'Fidelity card',    breadcrumb: 'Punti clienti', actions: '<button class="btn primary">+ Punto</button>' },
+  recensioni:   { title: 'Recensioni',       breadcrumb: 'Raccolta feedback', actions: '' },
+  marketing:    { title: 'Marketing',        breadcrumb: 'Promo e contenuti', actions: '<button class="btn primary">+ Promo</button>' },
+  fornitori:    { title: 'Fornitori',        breadcrumb: 'Rubrica e ordini', actions: '<button class="btn primary">+ Fornitore</button>' },
+  statistiche:  { title: 'Statistiche + AI', breadcrumb: 'Analisi e previsioni', actions: '' },
+};
+
+async function doLogin() {
+  const err = document.getElementById('login-error');
+  const btn = document.querySelector('.login-btn');
+  const now = Date.now();
+  if (now < lockUntil) {
+    const secs = Math.ceil((lockUntil - now) / 1000);
+    err.textContent = `Troppi tentativi. Attendi ${secs} secondi.`;
+    return;
+  }
+  const val = document.getElementById('pwd-input').value;
+  if (!val) return;
+  btn.textContent = '...'; btn.disabled = true;
+  const h = await hashString(val);
+  btn.textContent = 'Entra'; btn.disabled = false;
+  if (h === PWD_HASH) {
+    loginAttempts = 0;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ exp: Date.now() + SESSION_DURATION }));
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+    setGreeting();
+  } else {
+    loginAttempts++;
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+    if (loginAttempts >= 5) {
+      lockUntil = Date.now() + 60000;
+      err.textContent = 'Accesso bloccato per 60 secondi.';
+      setTimeout(() => { err.textContent = ''; loginAttempts = 0; }, 61000);
+    } else {
+      err.textContent = `Password errata. Tentativo ${loginAttempts}/5.`;
+      setTimeout(() => err.textContent = '', 3000);
+    }
+  }
+}
+
+document.getElementById('pwd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('pwd-input').value = '';
+}
+
+checkSession();
+
+function goTo(page, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navEl = el || document.querySelector('[data-page="' + page + '"]');
+  if (navEl) navEl.classList.add('active');
+  const meta = PAGE_META[page];
+  document.getElementById('page-title').textContent = meta.title;
+  document.getElementById('page-breadcrumb').textContent = meta.breadcrumb || formatDate();
+  document.getElementById('topbar-actions').innerHTML = meta.actions;
+  closeSidebar();
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+function toggleTask(el) {
+  el.classList.toggle('done');
+}
+
+function newPrenotazione() {
+  goTo('prenotazioni', null);
+}
+
+function setGreeting() {
+  const h = new Date().getHours();
+  let g = h < 12 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : 'Buonasera';
+  document.getElementById('greeting-text').textContent = g + ', Andrea 👋';
+  document.getElementById('greeting-sub').textContent = 'Ecco il riepilogo di oggi · ' + formatDate();
+}
+
+function formatDate() {
+  return new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+</script>
+</body>
+</html>
