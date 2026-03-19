@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Ricriju — Gestionale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --surface2: #f0ede6;
+  --border: #e2ddd5;
+  --border2: #ccc8bf;
+  --text: #1a1814;
+  --text2: #6b6660;
+  --text3: #a09c96;
+  --accent: #c8392b;
+  --accent-light: #fdf0ee;
+  --accent-border: #f0b8b2;
+  --green: #2d7a4f;
+  --green-light: #edf7f2;
+  --green-border: #a8d9be;
+  --amber: #b06a00;
+  --amber-light: #fef7ec;
+  --amber-border: #f5d49a;
+  --blue: #1a5fa8;
+  --blue-light: #edf4fc;
+  --blue-border: #aecef0;
+  --red: #c0392b;
+  --red-light: #fdf0ee;
+  --sidebar-w: 220px;
+  --topbar-h: 56px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ── LOGIN ────────────────────────────────────── */
+#login-screen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  transition: opacity .4s, transform .4s;
+}
+#login-screen.hidden { opacity: 0; pointer-events: none; transform: translateY(-16px); }
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 360px;
+  text-align: center;
+}
+.login-logo {
+  width: 48px; height: 48px;
+  background: var(--accent);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 22px; color: #fff; font-weight: 600;
+}
+.login-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; }
+
+.login-label { display: block; text-align: left; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+.login-input {
+  width: 100%; padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Mono', monospace; font-size: 18px; letter-spacing: 6px;
+  text-align: center; color: var(--text);
+  background: var(--bg);
+  outline: none; transition: border .2s;
+  margin-bottom: 20px;
+}
+.login-input:focus { border-color: var(--accent); background: var(--surface); }
+.login-btn {
+  width: 100%; padding: 11px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: background .15s;
+}
+.login-btn:hover { background: #a8301f; }
+.login-error { font-size: 12px; color: var(--red); margin-top: 10px; min-height: 16px; }
+
+/* ── APP SHELL ───────────────────────────────── */
+#app { display: flex; height: 100vh; opacity: 0; transition: opacity .4s; }
+#app.visible { opacity: 1; }
+
+/* ── SIDEBAR ─────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar-logo {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--accent); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.logo-text { font-size: 14px; font-weight: 600; color: var(--text); }
+.logo-sub { font-size: 11px; color: var(--text3); }
+
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.sidebar-nav::-webkit-scrollbar { width: 0; }
+
+.nav-section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .06em;
+  color: var(--text3); text-transform: uppercase;
+  padding: 12px 16px 4px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 16px; cursor: pointer;
+  font-size: 13px; color: var(--text2);
+  border-radius: 0; transition: background .1s, color .1s;
+  position: relative; user-select: none;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active {
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 500;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute; left: 0; top: 4px; bottom: 4px;
+  width: 3px; background: var(--accent);
+  border-radius: 0 3px 3px 0;
+}
+.nav-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 600;
+  padding: 1px 6px; border-radius: 10px; line-height: 1.6;
+}
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+.user-row { display: flex; align-items: center; gap: 10px; }
+.user-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent-light); border: 1px solid var(--accent-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+}
+.user-name { font-size: 13px; font-weight: 500; }
+.user-role { font-size: 11px; color: var(--text3); }
+.logout-btn {
+  margin-left: auto; cursor: pointer; color: var(--text3);
+  transition: color .15s; flex-shrink: 0;
+}
+.logout-btn:hover { color: var(--red); }
+
+/* ── MAIN ────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+.topbar {
+  height: var(--topbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; flex-shrink: 0;
+}
+.topbar-left { display: flex; flex-direction: column; }
+.page-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.page-breadcrumb { font-size: 11px; color: var(--text3); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.btn {
+  padding: 7px 14px; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background .15s, border-color .15s;
+  border: 1px solid var(--border2); background: var(--surface); color: var(--text);
+}
+.btn:hover { background: var(--bg); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.primary:hover { background: #a8301f; }
+
+.page-content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.page-content::-webkit-scrollbar { width: 6px; }
+.page-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── SEZIONI PAGINA ─────────────────────────── */
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* ── DASHBOARD ───────────────────────────────── */
+.greeting { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.greeting-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.stat-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1; margin-bottom: 6px; }
+.stat-delta { font-size: 12px; color: var(--green); }
+.stat-delta.down { color: var(--red); }
+.stat-delta.neutral { color: var(--text3); }
+
+.dash-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-bottom: 16px;
+}
+.dash-grid-3 {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.card-link { font-size: 12px; color: var(--accent); cursor: pointer; }
+.card-link:hover { text-decoration: underline; }
+
+/* ── LISTA PRENOTAZIONI DASHBOARD ─────────────── */
+.res-list { display: flex; flex-direction: column; gap: 0; }
+.res-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+}
+.res-row:last-child { border-bottom: none; padding-bottom: 0; }
+.res-name { font-size: 13px; font-weight: 500; }
+.res-detail { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.badge {
+  font-size: 11px; font-weight: 500; padding: 3px 9px;
+  border-radius: 20px; white-space: nowrap;
+}
+.badge.green { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+.badge.amber { background: var(--amber-light); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge.red { background: var(--red-light); color: var(--red); border: 1px solid var(--accent-border); }
+.badge.blue { background: var(--blue-light); color: var(--blue); border: 1px solid var(--blue-border); }
+
+/* ── AI BOX ──────────────────────────────────── */
+.ai-suggestion {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+  margin-bottom: 10px;
+}
+.ai-suggestion:last-child { margin-bottom: 0; }
+.ai-tag { font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+.ai-text { font-size: 12px; color: var(--text2); line-height: 1.55; }
+.ai-action { font-size: 11px; color: var(--accent); margin-top: 6px; cursor: pointer; }
+.ai-action:hover { text-decoration: underline; }
+
+/* ── CHECKLIST ───────────────────────────────── */
+.task-list { display: flex; flex-direction: column; gap: 0; }
+.task-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.task-row:last-child { border-bottom: none; padding-bottom: 0; }
+.task-check {
+  width: 16px; height: 16px; border-radius: 4px;
+  border: 1.5px solid var(--border2); flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.task-check.done { background: var(--green); border-color: var(--green); }
+.task-check.done::after { content: ''; display: block; width: 8px; height: 5px; border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: rotate(-45deg) translateY(-1px); }
+.task-text { font-size: 12px; color: var(--text); }
+.task-who { font-size: 11px; color: var(--text3); }
+
+/* ── ALLERTA MAGAZZINO ───────────────────────── */
+.alert-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.alert-row:last-child { border-bottom: none; padding-bottom: 0; }
+.alert-name { font-size: 13px; font-weight: 500; }
+.alert-detail { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+/* ── SEZIONI PLACEHOLDER ─────────────────────── */
+.placeholder-wrap {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 400px; gap: 12px; text-align: center;
+}
+.placeholder-icon {
+  width: 64px; height: 64px; border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  margin-bottom: 4px;
+}
+.placeholder-title { font-size: 18px; font-weight: 600; }
+.placeholder-sub { font-size: 13px; color: var(--text2); max-width: 340px; }
+.placeholder-badge {
+  font-size: 11px; font-weight: 500; padding: 4px 12px;
+  border-radius: 20px; background: var(--amber-light); color: var(--amber);
+  border: 1px solid var(--amber-border);
+}
+
+/* ── MOBILE SIDEBAR ──────────────────────────── */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.3); z-index: 200;
+}
+.menu-btn {
+  display: none; background: none; border: none; cursor: pointer;
+  padding: 4px; color: var(--text2);
+}
+
+.mkt-spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  :root { --sidebar-w: 240px; }
+  .menu-btn { display: flex; }
+  .sidebar {
+    position: fixed; left: -260px; top: 0; bottom: 0; z-index: 300;
+    transition: left .25s;
+    box-shadow: 2px 0 20px rgba(0,0,0,.08);
+  }
+  .sidebar.open { left: 0; }
+  .sidebar-overlay.open { display: block; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .dash-grid { grid-template-columns: 1fr; }
+  .dash-grid-3 { grid-template-columns: 1fr; }
+  .topbar { padding: 0 16px; }
+  .page-content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">M</div>
+    <div class="login-title">Mi Ricriju</div>
+    <div class="login-sub">Accedi al gestionale</div>
+    <label class="login-label">Codice di accesso</label>
+    <input class="login-input" type="password" id="pwd-input" maxlength="12" placeholder="••••••••" autocomplete="off">
+    <button class="login-btn" onclick="doLogin()">Entra</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">M</div>
+      <div>
+        <div class="logo-text">Mi Ricriju</div>
+        <div class="logo-sub">Gestionale</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+        Dashboard
+      </div>
+
+      <div class="nav-section-label">Operativo</div>
+      <div class="nav-item" data-page="prenotazioni" onclick="goTo('prenotazioni',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 1v4M11 1v4M1 7h14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Prenotazioni
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" data-page="foodcost" onclick="goTo('foodcost',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Food cost
+      </div>
+      <div class="nav-item" data-page="magazzino" onclick="goTo('magazzino',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="4" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 1h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M8 7v3M6.5 8.5h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Magazzino
+        <span class="nav-badge">2</span>
+      </div>
+
+      <div class="nav-section-label">Staff</div>
+      <div class="nav-item" data-page="dipendenti" onclick="goTo('dipendenti',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M1 14c0-2.761 2.239-4 5-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="12" cy="5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M10 10c1.5 0 4 .8 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Dipendenti
+      </div>
+      <div class="nav-item" data-page="mansionario" onclick="goTo('mansionario',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 3h12M2 7h8M2 11h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Mansionario
+      </div>
+
+      <div class="nav-section-label">Clienti</div>
+      <div class="nav-item" data-page="fidelity" onclick="goTo('fidelity',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><polygon points="8,1 10.2,5.8 15,6.4 11.5,9.8 12.4,14.5 8,12.1 3.6,14.5 4.5,9.8 1,6.4 5.8,5.8" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" fill="none"/></svg>
+        Fidelity card
+      </div>
+      <div class="nav-item" data-page="recensioni" onclick="goTo('recensioni',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M13 1H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3l2 3 2-3h3a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        Recensioni
+      </div>
+      <div class="nav-item" data-page="marketing" onclick="goTo('marketing',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 10V6l9-4v12L2 10z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M11 5.5c1.5.5 2.5 1.8 2.5 3s-1 2.5-2.5 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M5 10v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Marketing
+      </div>
+
+      <div class="nav-section-label">Gestione</div>
+      <div class="nav-item" data-page="fornitori" onclick="goTo('fornitori',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="9" width="14" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M3 9V6l4-4h2l4 4v3" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6 5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Fornitori
+      </div>
+      <div class="nav-item" data-page="statistiche" onclick="goTo('statistiche',this)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M1 12l4-4 3 2 4-5 3 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Statistiche + AI
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-row">
+        <div class="user-avatar">A</div>
+        <div>
+          <div class="user-name">Andrea</div>
+          <div class="user-role">Titolare</div>
+        </div>
+        <div class="logout-btn" onclick="doLogout()" title="Esci">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 8H2M6 5l-3 3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 3h5v10H8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-btn" onclick="openSidebar()">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <div class="topbar-left">
+          <div class="page-title" id="page-title">Dashboard</div>
+          <div class="page-breadcrumb" id="page-breadcrumb">Giovedì 19 marzo 2026</div>
+        </div>
+      </div>
+      <div class="topbar-right" id="topbar-actions">
+        <button class="btn primary" onclick="newPrenotazione()">+ Prenotazione</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- DASHBOARD -->
+      <div class="page-section active" id="page-dashboard">
+        <div class="greeting" id="greeting-text">Buongiorno, Andrea</div>
+        <div class="greeting-sub" id="greeting-sub">Ecco il riepilogo di oggi</div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Prenotazioni oggi</div>
+            <div class="stat-value">12</div>
+            <div class="stat-delta">↑ +3 rispetto a ieri</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Coperti stasera</div>
+            <div class="stat-value">48</div>
+            <div class="stat-delta neutral">82% della capienza</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Food cost mese</div>
+            <div class="stat-value">28%</div>
+            <div class="stat-delta down">↑ +2% vs target</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Clienti fidelity</div>
+            <div class="stat-value">147</div>
+            <div class="stat-delta">↑ +5 questo mese</div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Prenotazioni di oggi</span>
+              <span class="card-link" onclick="goTo('prenotazioni',null)">Vedi tutte →</span>
+            </div>
+            <div class="res-list">
+              <div class="res-row">
+                <div>
+                  <div class="res-name">Famiglia Russo</div>
+                  <div class="res-detail">20:00 · 6 persone · Tavolo 4</div>
+                </div>
+                <span class="badge green">Confermata</span>
+              </div>
+              <div class="res-row">
+                <div>
+                  <div class="res-name">Marco Bianchi</div>
+                  <div class="res-detail">20:30 · 2 persone · Tavolo 1</div>
+                </div>
+                <span class="badge green">Confermata</span>
+              </div>
+              <div class="res-row">
+                <div>
+                  <div class="res-name">Gruppo aziendale</div>
+                  <div class="res-detail">21:00 · 12 persone · Sala privata</div>
+                </div>
+                <span class="badge amber">In attesa</span>
+              </div>
+              <div class="res-row">
+                <div>
+                  <div class="res-name">Anna De Luca</div>
+                  <div class="res-detail">19:30 · 4 persone · Tavolo 7</div>
+                </div>
+                <span class="badge green">Confermata</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">AI assistant</span>
+              <span class="card-link" onclick="goTo('statistiche',null)">Apri →</span>
+            </div>
+            <div class="ai-suggestion">
+              <div class="ai-tag">Suggerimento food cost</div>
+              <div class="ai-text">La pizza margherita ha un food cost del 34%, sopra il target del 30%. Considera +0,50€ sul prezzo o rinegozia la farina.</div>
+              <div class="ai-action" onclick="goTo('foodcost',null)">Vai al food cost →</div>
+            </div>
+            <div class="ai-suggestion">
+              <div class="ai-tag">Previsione weekend</div>
+              <div class="ai-text">Sabato sera alta probabilità sold out. Consiglio di aprire un secondo turno dalle 21:30.</div>
+              <div class="ai-action" onclick="goTo('prenotazioni',null)">Gestisci prenotazioni →</div>
+            </div>
+            <div class="ai-suggestion">
+              <div class="ai-tag">Magazzino</div>
+              <div class="ai-text">Farina 00 quasi esaurita (4 kg rimasti). Ordine consigliato entro domani.</div>
+              <div class="ai-action" onclick="goTo('magazzino',null)">Vai al magazzino →</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-grid" style="margin-top:16px">
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Checklist turno serale</span>
+              <span class="card-link" onclick="goTo('mansionario',null)">Mansionario →</span>
+            </div>
+            <div class="task-list">
+              <div class="task-row">
+                <div class="task-check done" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Mise en place sala completata</div>
+                  <div class="task-who">Luigi · 17:30</div>
+                </div>
+              </div>
+              <div class="task-row">
+                <div class="task-check done" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Temperature frigo verificate</div>
+                  <div class="task-who">Sara · 17:45</div>
+                </div>
+              </div>
+              <div class="task-row">
+                <div class="task-check" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Cassa aperta e verificata</div>
+                  <div class="task-who">Da assegnare</div>
+                </div>
+              </div>
+              <div class="task-row">
+                <div class="task-check" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Scorte magazzino verificate</div>
+                  <div class="task-who">Da assegnare</div>
+                </div>
+              </div>
+              <div class="task-row">
+                <div class="task-check" onclick="toggleTask(this)"></div>
+                <div>
+                  <div class="task-text">Menu speciale aggiornato</div>
+                  <div class="task-who">Da assegnare</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">Allerta magazzino</span>
+              <span class="card-link" onclick="goTo('magazzino',null)">Gestisci →</span>
+            </div>
+            <div class="res-list">
+              <div class="alert-row">
+                <div>
+                  <div class="alert-name">Farina 00</div>
+                  <div class="alert-detail">Rimasti 4 kg · minimo 10 kg</div>
+                </div>
+                <span class="badge red">Esaurito</span>
+              </div>
+              <div class="alert-row">
+                <div>
+                  <div class="alert-name">Pomodoro San Marzano</div>
+                  <div class="alert-detail">6 lattine · minimo 12</div>
+                </div>
+                <span class="badge amber">Basso</span>
+              </div>
+              <div class="alert-row">
+                <div>
+                  <div class="alert-name">Mozzarella fior di latte</div>
+                  <div class="alert-detail">2 kg rimasti · minimo 5 kg</div>
+                </div>
+                <span class="badge amber">Basso</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRENOTAZIONI -->
+      <div class="page-section" id="page-prenotazioni">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">📅</div>
+          <div class="placeholder-title">Prenotazioni</div>
+          <div class="placeholder-sub">Questa sezione integrerà la tua app prenotazioni esistente (andreabev001.github.io/prenotazioni-ristorante) con tutte le funzionalità già costruite.</div>
+          <span class="placeholder-badge">In integrazione — Fase 1</span>
+          <button class="btn primary" style="margin-top:8px" onclick="window.open('https://andreabev001.github.io/prenotazioni-ristorante','_blank')">Apri app prenotazioni →</button>
+        </div>
+      </div>
+
+      <!-- FOOD COST -->
+      <div class="page-section" id="page-foodcost">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">🍕</div>
+          <div class="placeholder-title">Food cost</div>
+          <div class="placeholder-sub">Questa sezione integrerà la tua app food cost esistente (andreabev001.github.io/Food-cost) con piatti, ingredienti, costi fissi e analisi.</div>
+          <span class="placeholder-badge">In integrazione — Fase 1</span>
+          <button class="btn primary" style="margin-top:8px" onclick="window.open('https://andreabev001.github.io/Food-cost','_blank')">Apri app food cost →</button>
+        </div>
+      </div>
+
+      <!-- MAGAZZINO -->
+      <div class="page-section" id="page-magazzino">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">📦</div>
+          <div class="placeholder-title">Magazzino</div>
+          <div class="placeholder-sub">Gestione scorte, alert quantità minima, carico e scarico prodotti, storico movimenti e ordini ai fornitori.</div>
+          <span class="placeholder-badge">In costruzione — Fase 5</span>
+        </div>
+      </div>
+
+      <!-- DIPENDENTI -->
+      <div class="page-section" id="page-dipendenti">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">👥</div>
+          <div class="placeholder-title">Dipendenti</div>
+          <div class="placeholder-sub">Gestione turni, presenze, permessi e contatti per tutto il personale di Mi Ricriju.</div>
+          <span class="placeholder-badge">In costruzione — Fase 5</span>
+        </div>
+      </div>
+
+      <!-- MANSIONARIO -->
+      <div class="page-section" id="page-mansionario">
+
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto">
+          <div class="mans-tab active" data-tab="apertura" onclick="mansTab('apertura',this)" style="padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid var(--accent);color:var(--accent);white-space:nowrap">Apertura</div>
+          <div class="mans-tab" data-tab="serale" onclick="mansTab('serale',this)" style="padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap">Turno serale</div>
+          <div class="mans-tab" data-tab="chiusura" onclick="mansTab('chiusura',this)" style="padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap">Chiusura</div>
+          <div class="mans-tab" data-tab="guida" onclick="mansTab('guida',this)" style="padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap">Guida nuovi</div>
+          <div class="mans-tab" data-tab="modifica" onclick="mansTab('modifica',this)" style="padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap">Modifica</div>
+        </div>
+
+        <div class="mans-panel active" id="mans-apertura">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title" style="display:flex;align-items:center;gap:8px">
+                  <span style="background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-border);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600">SALA</span>Checklist apertura
+                </span>
+                <span id="mans-prog-sala-apertura" style="font-size:12px;color:var(--text3)">0/0</span>
+              </div>
+              <div class="mans-list" id="ml-sala-apertura"></div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title" style="display:flex;align-items:center;gap:8px">
+                  <span style="background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-border);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600">CUCINA</span>Checklist apertura
+                </span>
+                <span id="mans-prog-cucina-apertura" style="font-size:12px;color:var(--text3)">0/0</span>
+              </div>
+              <div class="mans-list" id="ml-cucina-apertura"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mans-panel" id="mans-serale" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title" style="display:flex;align-items:center;gap:8px">
+                  <span style="background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-border);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600">SALA</span>Turno serale
+                </span>
+                <span id="mans-prog-sala-serale" style="font-size:12px;color:var(--text3)">0/0</span>
+              </div>
+              <div class="mans-list" id="ml-sala-serale"></div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title" style="display:flex;align-items:center;gap:8px">
+                  <span style="background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-border);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600">CUCINA</span>Turno serale
+                </span>
+                <span id="mans-prog-cucina-serale" style="font-size:12px;color:var(--text3)">0/0</span>
+              </div>
+              <div class="mans-list" id="ml-cucina-serale"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mans-panel" id="mans-chiusura" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title" style="display:flex;align-items:center;gap:8px">
+                  <span style="background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-border);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600">SALA</span>Checklist chiusura
+                </span>
+                <span id="mans-prog-sala-chiusura" style="font-size:12px;color:var(--text3)">0/0</span>
+              </div>
+              <div class="mans-list" id="ml-sala-chiusura"></div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <span class="card-title" style="display:flex;align-items:center;gap:8px">
+                  <span style="background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-border);border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600">CUCINA</span>Checklist chiusura
+                </span>
+                <span id="mans-prog-cucina-chiusura" style="font-size:12px;color:var(--text3)">0/0</span>
+              </div>
+              <div class="mans-list" id="ml-cucina-chiusura"></div>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:12px 16px;background:var(--amber-light);border:1px solid var(--amber-border);border-radius:var(--radius);font-size:12px;color:var(--amber)">
+            Le checklist si resettano automaticamente ogni giorno alle 06:00.
+          </div>
+        </div>
+
+        <div class="mans-panel" id="mans-guida" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="guida-grid"></div>
+        </div>
+
+        <div class="mans-panel" id="mans-modifica" style="display:none">
+          <div class="card" style="max-width:560px">
+            <div class="card-head"><span class="card-title">Aggiungi / rimuovi compiti</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <select id="mans-edit-ruolo" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="sala">Sala</option>
+                <option value="cucina">Cucina</option>
+              </select>
+              <select id="mans-edit-turno" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text)">
+                <option value="apertura">Apertura</option>
+                <option value="serale">Turno serale</option>
+                <option value="chiusura">Chiusura</option>
+                <option value="guida">Guida nuovi</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:16px">
+              <input type="text" id="mans-edit-testo" placeholder="Nuovo compito..." style="flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text)">
+              <button class="btn primary" onclick="mansAddTask()">Aggiungi</button>
+            </div>
+            <div id="mans-edit-list" style="display:flex;flex-direction:column;gap:0"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FIDELITY -->
+      <div class="page-section" id="page-fidelity">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">⭐</div>
+          <div class="placeholder-title">Fidelity card</div>
+          <div class="placeholder-sub">Assegna punti per visita, recensione e referral. I clienti possono vedere il loro saldo via numero di telefono.</div>
+          <span class="placeholder-badge">In costruzione — Fase 4</span>
+        </div>
+      </div>
+
+      <!-- RECENSIONI -->
+      <div class="page-section" id="page-recensioni">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">💬</div>
+          <div class="placeholder-title">Raccolta recensioni</div>
+          <div class="placeholder-sub">QR code da mostrare al tavolo, link diretto a Google e TripAdvisor, raccolta feedback interni.</div>
+          <span class="placeholder-badge">In costruzione — Fase 4</span>
+        </div>
+      </div>
+
+      <!-- MARKETING -->
+      <div class="page-section" id="page-marketing">
+
+        <!-- Tab bar marketing -->
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto">
+          <div class="mkt-tab active" onclick="mktTab('genera',this)" style="padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid var(--accent);color:var(--accent);white-space:nowrap">Genera contenuti</div>
+          <div class="mkt-tab" onclick="mktTab('promo',this)" style="padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap">Promo ed eventi</div>
+          <div class="mkt-tab" onclick="mktTab('salvati',this)" style="padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap">Salvati</div>
+        </div>
+
+        <!-- GENERA CONTENUTI AI -->
+        <div class="mkt-panel active" id="mkt-genera">
+          <div style="display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start">
+
+            <!-- Form sinistra -->
+            <div class="card">
+              <div class="card-head"><span class="card-title">Impostazioni contenuto</span></div>
+
+              <div style="margin-bottom:12px">
+                <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">Tipo di contenuto</div>
+                <div style="display:flex;flex-direction:column;gap:6px" id="mkt-tipo-group">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                    <input type="radio" name="mkt-tipo" value="instagram" checked style="accent-color:var(--accent)"> Post Instagram
+                  </label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                    <input type="radio" name="mkt-tipo" value="facebook" style="accent-color:var(--accent)"> Post Facebook
+                  </label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                    <input type="radio" name="mkt-tipo" value="whatsapp" style="accent-color:var(--accent)"> Messaggio WhatsApp
+                  </label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                    <input type="radio" name="mkt-tipo" value="storia" style="accent-color:var(--accent)"> Storia Instagram
+                  </label>
+                </div>
+              </div>
+
+              <div style="margin-bottom:12px">
+                <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">Tema / occasione</div>
+                <select id="mkt-tema" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text)">
+                  <option value="promo">Offerta speciale</option>
+                  <option value="evento">Evento speciale</option>
+                  <option value="weekend">Weekend / apertura</option>
+                  <option value="piatto">Piatto del giorno</option>
+                  <option value="pizzeria">La nostra pizzeria</option>
+                  <option value="estate">Estate / stagione</option>
+                  <option value="natale">Natale / Capodanno</option>
+                  <option value="sanvalentino">San Valentino</option>
+                  <option value="personalizzato">Personalizzato</option>
+                </select>
+              </div>
+
+              <div id="mkt-custom-wrap" style="margin-bottom:12px;display:none">
+                <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">Descrivi cosa vuoi</div>
+                <textarea id="mkt-custom-text" rows="3" placeholder="Es: Voglio promuovere la pizza al tartufo a 12€ solo per questo weekend..." style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text);resize:vertical"></textarea>
+              </div>
+
+              <div style="margin-bottom:16px">
+                <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">Tono</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px"><input type="radio" name="mkt-tono" value="caloroso" checked style="accent-color:var(--accent)"> Caloroso</label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px"><input type="radio" name="mkt-tono" value="divertente" style="accent-color:var(--accent)"> Divertente</label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px"><input type="radio" name="mkt-tono" value="elegante" style="accent-color:var(--accent)"> Elegante</label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px"><input type="radio" name="mkt-tono" value="urgente" style="accent-color:var(--accent)"> Urgente</label>
+                </div>
+              </div>
+
+              <button class="btn primary" style="width:100%" onclick="mktGenera()">Genera con AI</button>
+            </div>
+
+            <!-- Risultato destra -->
+            <div>
+              <div class="card" id="mkt-result-card" style="min-height:320px">
+                <div id="mkt-result-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;gap:10px;text-align:center">
+                  <div style="font-size:32px">✨</div>
+                  <div style="font-size:14px;font-weight:500;color:var(--text2)">Configura e premi "Genera con AI"</div>
+                  <div style="font-size:12px;color:var(--text3)">Il testo verrà generato qui</div>
+                </div>
+                <div id="mkt-result-content" style="display:none">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                    <div id="mkt-result-tipo" style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-border)"></div>
+                    <div style="display:flex;gap:8px">
+                      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="mktCopia()">Copia</button>
+                      <button class="btn" style="font-size:12px;padding:5px 10px" onclick="mktSalva()">Salva</button>
+                      <button class="btn primary" style="font-size:12px;padding:5px 10px" onclick="mktGenera()">Rigenera</button>
+                    </div>
+                  </div>
+                  <div id="mkt-result-testo" style="font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;background:var(--bg);min-height:120px"></div>
+                  <div id="mkt-result-immagine" style="margin-top:14px;padding:12px 14px;background:var(--amber-light);border:1px solid var(--amber-border);border-radius:var(--radius-sm)">
+                    <div style="font-size:11px;font-weight:600;color:var(--amber);margin-bottom:4px">IDEA IMMAGINE</div>
+                    <div id="mkt-result-img-text" style="font-size:13px;color:var(--text2);line-height:1.5"></div>
+                  </div>
+                </div>
+                <div id="mkt-loading" style="display:none;align-items:center;justify-content:center;min-height:280px;gap:12px;flex-direction:column">
+                  <div class="mkt-spinner"></div>
+                  <div style="font-size:13px;color:var(--text2)">Sto scrivendo...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROMO ED EVENTI -->
+        <div class="mkt-panel" id="mkt-promo" style="display:none">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+            <button class="btn primary" onclick="mktNuovaPromo()">+ Nuova promo / evento</button>
+          </div>
+          <div id="mkt-promo-list"></div>
+
+          <!-- Form nuova promo (nascosto) -->
+          <div id="mkt-promo-form" style="display:none;margin-bottom:20px">
+            <div class="card" style="max-width:540px">
+              <div class="card-head"><span class="card-title" id="mkt-form-title">Nuova promo</span></div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div>
+                  <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px">Titolo</div>
+                  <input type="text" id="mkt-p-titolo" placeholder="Es: Pizza gratis per i compleanni" style="width:100%;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text)">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div>
+                    <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px">Tipo</div>
+                    <select id="mkt-p-tipo" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text)">
+                      <option value="promo">Promo</option>
+                      <option value="evento">Evento speciale</option>
+                      <option value="stagionale">Stagionale</option>
+                    </select>
+                  </div>
+                  <div>
+                    <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px">Data inizio</div>
+                    <input type="date" id="mkt-p-data" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text)">
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px">Descrizione / dettagli</div>
+                  <textarea id="mkt-p-desc" rows="3" placeholder="Descrivi la promo o l'evento..." style="width:100%;padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg);color:var(--text);resize:vertical"></textarea>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end">
+                  <button class="btn" onclick="document.getElementById('mkt-promo-form').style.display='none'">Annulla</button>
+                  <button class="btn primary" onclick="mktSalvaPromo()">Salva</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SALVATI -->
+        <div class="mkt-panel" id="mkt-salvati" style="display:none">
+          <div id="mkt-salvati-list"></div>
+        </div>
+
+      </div>
+
+      <!-- FORNITORI -->
+      <div class="page-section" id="page-fornitori">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">🏭</div>
+          <div class="placeholder-title">Fornitori</div>
+          <div class="placeholder-sub">Rubrica fornitori, storico ordini, prezzi aggiornati e contatti rapidi per gli ordini settimanali.</div>
+          <span class="placeholder-badge">In costruzione — Fase 5</span>
+        </div>
+      </div>
+
+      <!-- STATISTICHE + AI -->
+      <div class="page-section" id="page-statistiche">
+        <div class="placeholder-wrap">
+          <div class="placeholder-icon">📊</div>
+          <div class="placeholder-title">Statistiche + AI</div>
+          <div class="placeholder-sub">Grafici di prenotazioni, food cost, trend mensili e suggerimenti intelligenti generati dall'AI di Anthropic.</div>
+          <span class="placeholder-badge">In costruzione — Fase 3</span>
+        </div>
+      </div>
+
+    </div><!-- end page-content -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
+<script>
+// Password hash SHA-256 — non è la password in chiaro
+const PWD_HASH = '842bf9e19453a95c665f537b745b3b10a76f3be6fb82bedf829544223b449754';
+// Sessione
+const SESSION_KEY = 'mriju_session';
+const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 ore
+let loginAttempts = 0;
+let lockUntil = 0;
+
+async function hashString(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function checkSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if (s && s.exp > Date.now()) {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app').classList.add('visible');
+      setGreeting();
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+const PAGE_META = {
+  dashboard:    { title: 'Dashboard',        breadcrumb: null, actions: '<button class="btn primary" onclick="newPrenotazione()">+ Prenotazione</button>' },
+  prenotazioni: { title: 'Prenotazioni',     breadcrumb: 'Gestione prenotazioni', actions: '<button class="btn primary" onclick="newPrenotazione()">+ Prenotazione</button>' },
+  foodcost:     { title: 'Food cost',        breadcrumb: 'Analisi costi', actions: '' },
+  magazzino:    { title: 'Magazzino',        breadcrumb: 'Scorte e movimenti', actions: '<button class="btn primary">+ Prodotto</button>' },
+  dipendenti:   { title: 'Dipendenti',       breadcrumb: 'Turni e staff', actions: '<button class="btn primary">+ Dipendente</button>' },
+  mansionario:  { title: 'Mansionario',      breadcrumb: 'Compiti e checklist', actions: '<button class="btn primary">+ Compito</button>' },
+  fidelity:     { title: 'Fidelity card',    breadcrumb: 'Punti clienti', actions: '<button class="btn primary">+ Punto</button>' },
+  recensioni:   { title: 'Recensioni',       breadcrumb: 'Raccolta feedback', actions: '' },
+  marketing:    { title: 'Marketing',        breadcrumb: 'Promo e contenuti', actions: '<button class="btn primary">+ Promo</button>' },
+  fornitori:    { title: 'Fornitori',        breadcrumb: 'Rubrica e ordini', actions: '<button class="btn primary">+ Fornitore</button>' },
+  statistiche:  { title: 'Statistiche + AI', breadcrumb: 'Analisi e previsioni', actions: '' },
+};
+
+async function doLogin() {
+  const err = document.getElementById('login-error');
+  const btn = document.querySelector('.login-btn');
+  const now = Date.now();
+  if (now < lockUntil) {
+    const secs = Math.ceil((lockUntil - now) / 1000);
+    err.textContent = `Troppi tentativi. Attendi ${secs} secondi.`;
+    return;
+  }
+  const val = document.getElementById('pwd-input').value;
+  if (!val) return;
+  btn.textContent = '...'; btn.disabled = true;
+  const h = await hashString(val);
+  btn.textContent = 'Entra'; btn.disabled = false;
+  if (h === PWD_HASH) {
+    loginAttempts = 0;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ exp: Date.now() + SESSION_DURATION }));
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+    setGreeting();
+  } else {
+    loginAttempts++;
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+    if (loginAttempts >= 5) {
+      lockUntil = Date.now() + 60000;
+      err.textContent = 'Accesso bloccato per 60 secondi.';
+      setTimeout(() => { err.textContent = ''; loginAttempts = 0; }, 61000);
+    } else {
+      err.textContent = `Password errata. Tentativo ${loginAttempts}/5.`;
+      setTimeout(() => err.textContent = '', 3000);
+    }
+  }
+}
+
+document.getElementById('pwd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('pwd-input').value = '';
+}
+
+checkSession();
+
+function goTo(page, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navEl = el || document.querySelector('[data-page="' + page + '"]');
+  if (navEl) navEl.classList.add('active');
+  const meta = PAGE_META[page];
+  document.getElementById('page-title').textContent = meta.title;
+  document.getElementById('page-breadcrumb').textContent = meta.breadcrumb || formatDate();
+  document.getElementById('topbar-actions').innerHTML = meta.actions;
+  closeSidebar();
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+function toggleTask(el) {
+  el.classList.toggle('done');
+}
+
+function newPrenotazione() {
+  goTo('prenotazioni', null);
+}
+
+function setGreeting() {
+  const h = new Date().getHours();
+  let g = h < 12 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : 'Buonasera';
+  document.getElementById('greeting-text').textContent = g + ', Andrea 👋';
+  document.getElementById('greeting-sub').textContent = 'Ecco il riepilogo di oggi · ' + formatDate();
+}
+
+function formatDate() {
+  return new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// ── MARKETING ───────────────────────────────────────────────
+const MKT_SAVED_KEY = 'mriju_mkt_saved';
+const MKT_PROMO_KEY = 'mriju_mkt_promo';
+
+document.addEventListener('change', e => {
+  if (e.target.name === 'mkt-tema') {
+    document.getElementById('mkt-custom-wrap').style.display =
+      e.target.value === 'personalizzato' ? 'block' : 'none';
+  }
+});
+
+function mktTab(tab, el) {
+  document.querySelectorAll('.mkt-tab').forEach(t => {
+    t.style.borderBottomColor = 'transparent';
+    t.style.color = 'var(--text2)';
+  });
+  el.style.borderBottomColor = 'var(--accent)';
+  el.style.color = 'var(--accent)';
+  document.querySelectorAll('.mkt-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('mkt-' + tab).style.display = 'block';
+  if (tab === 'promo') mktRenderPromo();
+  if (tab === 'salvati') mktRenderSalvati();
+}
+
+async function mktGenera() {
+  const tipo = document.querySelector('input[name="mkt-tipo"]:checked')?.value || 'instagram';
+  const tema = document.getElementById('mkt-tema').value;
+  const tono = document.querySelector('input[name="mkt-tono"]:checked')?.value || 'caloroso';
+  const custom = document.getElementById('mkt-custom-text')?.value || '';
+
+  const tipoLabel = {instagram:'Post Instagram',facebook:'Post Facebook',whatsapp:'Messaggio WhatsApp',storia:'Storia Instagram'};
+  const temaLabel = {promo:'offerta speciale',evento:'evento speciale',weekend:'apertura del weekend',piatto:'piatto del giorno',pizzeria:'la pizzeria',estate:'estate',natale:'Natale e Capodanno',sanvalentino:'San Valentino',personalizzato:custom};
+
+  document.getElementById('mkt-result-empty').style.display = 'none';
+  document.getElementById('mkt-result-content').style.display = 'none';
+  document.getElementById('mkt-loading').style.display = 'flex';
+
+  const prompt = `Sei il social media manager di "Mi Ricriju", una pizzeria/ristorante a Camigliatello Silano in Calabria, Italia.
+Crea un ${tipoLabel[tipo]} sul tema: ${temaLabel[tema] || custom}.
+Tono: ${tono}.
+${tipo === 'instagram' || tipo === 'storia' ? 'Includi emoji pertinenti e hashtag calabresi/locali alla fine.' : ''}
+${tipo === 'whatsapp' ? 'Scrivi in modo diretto e personale, senza hashtag.' : ''}
+Rispondi SOLO con un JSON così (senza markdown):
+{"testo":"il testo del post completo","immagine":"idea concreta per la foto/grafica da abbinare, max 2 righe"}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.map(c => c.text || '').join('') || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    document.getElementById('mkt-result-tipo').textContent = tipoLabel[tipo];
+    document.getElementById('mkt-result-testo').textContent = parsed.testo;
+    document.getElementById('mkt-result-img-text').textContent = parsed.immagine;
+    document.getElementById('mkt-loading').style.display = 'none';
+    document.getElementById('mkt-result-content').style.display = 'block';
+    document.getElementById('mkt-result-content')._data = { tipo: tipoLabel[tipo], testo: parsed.testo, immagine: parsed.immagine };
+  } catch(e) {
+    document.getElementById('mkt-loading').style.display = 'none';
+    document.getElementById('mkt-result-empty').style.display = 'flex';
+    document.getElementById('mkt-result-empty').innerHTML = '<div style="font-size:28px">⚠️</div><div style="font-size:13px;color:var(--text2)">Errore nella generazione. Riprova.</div>';
+  }
+}
+
+function mktCopia() {
+  const testo = document.getElementById('mkt-result-testo').textContent;
+  navigator.clipboard.writeText(testo).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copiato!';
+    setTimeout(() => btn.textContent = 'Copia', 1500);
+  });
+}
+
+function mktSalva() {
+  const d = document.getElementById('mkt-result-content')._data;
+  if (!d) return;
+  const saved = JSON.parse(localStorage.getItem(MKT_SAVED_KEY) || '[]');
+  saved.unshift({ id: Date.now(), ...d, data: new Date().toLocaleDateString('it-IT') });
+  localStorage.setItem(MKT_SAVED_KEY, JSON.stringify(saved.slice(0, 50)));
+  const btn = event.target;
+  btn.textContent = 'Salvato!';
+  btn.style.background = 'var(--green-light)';
+  setTimeout(() => { btn.textContent = 'Salva'; btn.style.background = ''; }, 1500);
+}
+
+function mktRenderSalvati() {
+  const saved = JSON.parse(localStorage.getItem(MKT_SAVED_KEY) || '[]');
+  const el = document.getElementById('mkt-salvati-list');
+  if (!el) return;
+  if (!saved.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">Nessun contenuto salvato ancora.</div>';
+    return;
+  }
+  el.innerHTML = saved.map((s,i) => `
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;background:var(--accent-light);color:var(--accent);border:1px solid var(--accent-border)">${s.tipo}</span>
+          <span style="font-size:11px;color:var(--text3)">${s.data}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" style="font-size:11px;padding:4px 9px" onclick="navigator.clipboard.writeText(${JSON.stringify(s.testo)})">Copia</button>
+          <button class="btn" style="font-size:11px;padding:4px 9px;color:var(--red)" onclick="mktElimina(${i})">Elimina</button>
+        </div>
+      </div>
+      <div style="font-size:13px;line-height:1.65;color:var(--text);white-space:pre-wrap;border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px;background:var(--bg)">${s.testo}</div>
+      <div style="margin-top:8px;padding:9px 12px;background:var(--amber-light);border:1px solid var(--amber-border);border-radius:var(--radius-sm);font-size:12px;color:var(--text2)"><strong style="color:var(--amber)">Foto:</strong> ${s.immagine}</div>
+    </div>`).join('');
+}
+
+function mktElimina(idx) {
+  const saved = JSON.parse(localStorage.getItem(MKT_SAVED_KEY) || '[]');
+  saved.splice(idx, 1);
+  localStorage.setItem(MKT_SAVED_KEY, JSON.stringify(saved));
+  mktRenderSalvati();
+}
+
+function mktNuovaPromo() {
+  document.getElementById('mkt-promo-form').style.display = 'block';
+  document.getElementById('mkt-p-titolo').focus();
+}
+
+function mktSalvaPromo() {
+  const titolo = document.getElementById('mkt-p-titolo').value.trim();
+  if (!titolo) return;
+  const promo = JSON.parse(localStorage.getItem(MKT_PROMO_KEY) || '[]');
+  promo.unshift({
+    id: Date.now(),
+    titolo,
+    tipo: document.getElementById('mkt-p-tipo').value,
+    data: document.getElementById('mkt-p-data').value,
+    desc: document.getElementById('mkt-p-desc').value.trim(),
+  });
+  localStorage.setItem(MKT_PROMO_KEY, JSON.stringify(promo));
+  document.getElementById('mkt-promo-form').style.display = 'none';
+  document.getElementById('mkt-p-titolo').value = '';
+  document.getElementById('mkt-p-data').value = '';
+  document.getElementById('mkt-p-desc').value = '';
+  mktRenderPromo();
+}
+
+function mktRenderPromo() {
+  const promo = JSON.parse(localStorage.getItem(MKT_PROMO_KEY) || '[]');
+  const el = document.getElementById('mkt-promo-list');
+  if (!el) return;
+  if (!promo.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">Nessuna promo o evento salvato. Aggiungine uno!</div>';
+    return;
+  }
+  const tipoColor = { promo:'var(--accent)', evento:'var(--blue)', stagionale:'var(--green)' };
+  const tipoBg = { promo:'var(--accent-light)', evento:'var(--blue-light)', stagionale:'var(--green-light)' };
+  const tipoBorder = { promo:'var(--accent-border)', evento:'var(--blue-border)', stagionale:'var(--green-border)' };
+  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:16px">` +
+    promo.map((p,i) => `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;background:${tipoBg[p.tipo]};color:${tipoColor[p.tipo]};border:1px solid ${tipoBorder[p.tipo]}">${p.tipo.toUpperCase()}</span>
+          <button onclick="mktEliminaPromo(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1">&times;</button>
+        </div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px">${p.titolo}</div>
+        ${p.data ? `<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Dal ${new Date(p.data).toLocaleDateString('it-IT')}</div>` : ''}
+        ${p.desc ? `<div style="font-size:12px;color:var(--text2);line-height:1.5">${p.desc}</div>` : ''}
+        <button class="btn primary" style="width:100%;margin-top:12px;font-size:12px" onclick="mktGeneraDaPromo(${i})">Genera post AI</button>
+      </div>`).join('') + '</div>';
+}
+
+function mktEliminaPromo(idx) {
+  const promo = JSON.parse(localStorage.getItem(MKT_PROMO_KEY) || '[]');
+  promo.splice(idx, 1);
+  localStorage.setItem(MKT_PROMO_KEY, JSON.stringify(promo));
+  mktRenderPromo();
+}
+
+function mktGeneraDaPromo(idx) {
+  const promo = JSON.parse(localStorage.getItem(MKT_PROMO_KEY) || '[]');
+  const p = promo[idx];
+  document.getElementById('mkt-tema').value = 'personalizzato';
+  document.getElementById('mkt-custom-wrap').style.display = 'block';
+  document.getElementById('mkt-custom-text').value = p.titolo + (p.desc ? '. ' + p.desc : '');
+  mktTab('genera', document.querySelector('.mkt-tab'));
+  setTimeout(mktGenera, 100);
+}
+
+// ── MANSIONARIO ─────────────────────────────────────────────
+const SUPA_URL = 'https://hlzaghdjqwxijogunans.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhsemFnaGRqcXd4aWpvZ3VuYW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzg1MjYsImV4cCI6MjA4ODkxNDUyNn0.jy3EFJw7G50Z7NFETU3Z-NojJlcJePXMuVpBZieuz8U';
+const MANS_KEY = 'mriju_mansionario';
+
+const MANS_DEFAULT = {
+  sala: {
+    apertura: [
+      'Lavare il pavimento della sala e del bar',
+      'Pulire tutti i tavoli e sistemarli in ordine',
+      'Controllare e ricaricare materiali mancanti (tovaglioli, bicchieri, cannucce, zucchero ecc.)',
+      'Accendere luci e attrezzature (spillatrice acqua, cassa, radio ecc.)',
+      'Sistemare il bancone del bar e preparare le postazioni di lavoro',
+      'Verificare la scorta di materiali (tovaglioli, bicchieri, posate, ingredienti cocktail ecc.)',
+      'Controllare la pulizia dei bagni e rifornire carta igienica, sapone e prodotti necessari',
+      'Controllare la macchina del ghiaccio',
+    ],
+    serale: [
+      'Mantenere sempre il frigo pieno (frigo dentro e frigo deposito)',
+      'Controllare e ricaricare materiali mancanti (tovaglioli, bicchieri, cannucce, zucchero ecc.)',
+      'Verificare lo stato dei bagni e pulirli se necessario',
+      'Accogliere i clienti con cortesia e accompagnarli al tavolo',
+      'Chiedere ai clienti se desiderano una bottiglia d'acqua',
+      'Servire con professionalità e mantenere puliti tavoli, bancone e sala',
+      'Svuotare regolarmente la spazzatura e tenere i bidoni puliti',
+      'Evitare l'uso del telefono personale durante il turno',
+      'Sparecchiare i tavoli e il bancone appena possibile',
+      'Ricaricare eventuale vetrina dolci, salato e semifreddi',
+    ],
+    chiusura: [
+      'Pulire e riordinare tutti i tavoli',
+      'Lavare bicchieri e attrezzature del bar (inclusa vaschetta birra alla spina)',
+      'Pulire il bancone del bar e le macchine utilizzate',
+      'Passare la scopa e lavare il pavimento della sala e del bagno',
+      'Spegnere luci e attrezzature (macchina caffè ecc.)',
+      'Assicurarsi che tutte le porte e la cassa siano chiuse correttamente',
+    ],
+    guida: [
+      'Presentarsi sempre in orario al lavoro',
+      'In caso di ritardo o assenza, avvisare tempestivamente',
+      'Indossare l'abbigliamento fornito dal locale con jeans o abiti decorosi',
+      'Mantenere un atteggiamento professionale con clienti e colleghi',
+      'Evitare discussioni e conflitti durante il servizio',
+      'Non usare il telefono personale durante il turno, salvo emergenze lavorative',
+      'Accogliere sempre i clienti con cortesia e sorriso',
+      'Sparecchiare i tavoli appena possibile per garantire un servizio fluido',
+    ],
+  },
+  cucina: {
+    apertura: [
+      'Controllare e accendere le attrezzature necessarie (forni, piastre, friggitrici ecc.)',
+      'Verificare la scorta di ingredienti e materie prime, segnalare mancanze',
+      'Controllare le date di scadenza e organizzare le scorte secondo il principio FIFO',
+      'Pulire e sanificare i piani di lavoro prima di qualsiasi preparazione',
+      'Verificare che coltelli e strumenti di lavoro siano al loro posto e in buone condizioni',
+      'Controllare la temperatura dei frigoriferi e segnalare anomalie',
+      'Preparare le posate per il servizio',
+    ],
+    serale: [
+      'Mantenere ordine e pulizia in cucina durante tutta la preparazione',
+      'Preparare i piatti rispettando le comande e i tempi di uscita',
+      'Evitare sprechi e utilizzo eccessivo di materie prime',
+      'Smaltire correttamente i rifiuti (umido, plastica, vetro ecc.)',
+      'Verificare costantemente la pulizia delle attrezzature e degli utensili',
+      'Controllare che i frigoriferi siano sempre chiusi e ordinati',
+      'Mantenere comunicazione chiara e rispettosa con il personale di sala',
+      'Segnalare immediatamente problemi con forniture, attrezzature o ingredienti',
+    ],
+    chiusura: [
+      'Pulire e sanificare tutti i piani di lavoro, attrezzature e utensili',
+      'Spegnere e mettere in sicurezza le attrezzature secondo le procedure',
+      'Controllare che tutti i frigoriferi e congelatori siano ben chiusi',
+      'Smaltire correttamente i rifiuti e svuotare i bidoni',
+      'Lavare i pavimenti con prodotti adeguati',
+      'Verificare e segnalare le scorte da ricaricare per il turno successivo',
+      'Assicurarsi che la cucina sia completamente pulita prima di lasciare il locale',
+    ],
+    guida: [
+      'Presentarsi sempre in orario al lavoro',
+      'In caso di ritardo o assenza, avvisare tempestivamente',
+      'Mantenere un atteggiamento professionale e rispettoso con colleghi e responsabili',
+      'Evitare discussioni e conflitti durante il servizio',
+      'Collaborare con il personale di sala per garantire tempi di uscita corretti',
+      'Rispettare sempre il principio FIFO per la gestione delle scorte',
+      'Segnalare subito qualsiasi problema con attrezzature, forniture o ingredienti',
+      'Mantenere la cucina completamente pulita prima di lasciare il locale',
+    ],
+  },
+};
+
+function mansLoad() {
+  try { return JSON.parse(localStorage.getItem(MANS_KEY)) || JSON.parse(JSON.stringify(MANS_DEFAULT)); }
+  catch(e) { return JSON.parse(JSON.stringify(MANS_DEFAULT)); }
+}
+function mansSave(data) { localStorage.setItem(MANS_KEY, JSON.stringify(data)); }
+
+// Supabase checks helpers
+function mansToday() { return new Date().toISOString().slice(0,10); }
+
+async function mansLoadChecks() {
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/mansionario_checks?giorno=eq.${mansToday()}&select=ruolo,turno,task_index,fatto`, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    const rows = await res.json();
+    const map = {};
+    rows.forEach(r => { if(r.fatto) map[r.ruolo+'_'+r.turno+'_'+r.task_index] = true; });
+    return map;
+  } catch(e) { return {}; }
+}
+
+async function mansSetCheck(ruolo, turno, idx, val) {
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/mansionario_checks`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ giorno: mansToday(), ruolo, turno, task_index: idx, fatto: val, fatto_alle: new Date().toISOString() })
+    });
+  } catch(e) {}
+}
+
+async function mansRenderList(ruolo, turno) {
+  const data = mansLoad();
+  const checks = await mansLoadChecks();
+  const tasks = (data[ruolo] && data[ruolo][turno]) ? data[ruolo][turno] : [];
+  const el = document.getElementById('ml-' + ruolo + '-' + turno);
+  const prog = document.getElementById('mans-prog-' + ruolo + '-' + turno);
+  if (!el) return;
+  let done = 0;
+  el.innerHTML = tasks.map((t, i) => {
+    const key = ruolo + '_' + turno + '_' + i;
+    const checked = !!checks[key];
+    if (checked) done++;
+    return `<div class="task-row">
+      <div class="task-check${checked?' done':''}" onclick="mansToggle('${ruolo}','${turno}',${i},this)"></div>
+      <div><div class="task-text">${t}</div></div>
+    </div>`;
+  }).join('');
+  if (prog) prog.textContent = done + '/' + tasks.length;
+}
+
+async function mansToggle(ruolo, turno, idx, el) {
+  const newVal = !el.classList.contains('done');
+  el.classList.toggle('done', newVal);
+  await mansSetCheck(ruolo, turno, idx, newVal);
+  // aggiorna contatore
+  const checks = await mansLoadChecks();
+  const tasks = (mansLoad()[ruolo] || {})[turno] || [];
+  let done = 0;
+  tasks.forEach((_,i) => { if(checks[ruolo+'_'+turno+'_'+i]) done++; });
+  const prog = document.getElementById('mans-prog-' + ruolo + '-' + turno);
+  if (prog) prog.textContent = done + '/' + tasks.length;
+}
+
+function mansRenderGuida() {
+  const data = mansLoad();
+  const grid = document.getElementById('guida-grid');
+  if (!grid) return;
+  const ruoli = [{key:'sala',label:'Sala',color:'var(--accent)',bg:'var(--accent-light)',border:'var(--accent-border)'},{key:'cucina',label:'Cucina',color:'var(--blue)',bg:'var(--blue-light)',border:'var(--blue-border)'}];
+  grid.innerHTML = ruoli.map(r => `
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title" style="display:flex;align-items:center;gap:8px">
+          <span style="background:${r.bg};color:${r.color};border:1px solid ${r.border};border-radius:6px;padding:2px 10px;font-size:11px;font-weight:600">${r.label.toUpperCase()}</span>
+          Regole e consigli
+        </span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        ${(data[r.key].guida||[]).map((t,i) => `
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+            <div style="min-width:20px;height:20px;border-radius:50%;background:${r.bg};color:${r.color};border:1px solid ${r.border};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${i+1}</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.45">${t}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function mansRenderEditList() {
+  const ruolo = document.getElementById('mans-edit-ruolo').value;
+  const turno = document.getElementById('mans-edit-turno').value;
+  const data = mansLoad();
+  const tasks = (data[ruolo] && data[ruolo][turno]) ? data[ruolo][turno] : [];
+  const el = document.getElementById('mans-edit-list');
+  if (!el) return;
+  el.innerHTML = tasks.length === 0 ? '<div style="font-size:12px;color:var(--text3);padding:8px 0">Nessun compito. Aggiungine uno sopra.</div>' :
+    tasks.map((t,i) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px">${t}</span>
+        <button onclick="mansDeleteTask('${ruolo}','${turno}',${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:0 4px" title="Elimina">&times;</button>
+      </div>`).join('');
+}
+
+function mansAddTask() {
+  const ruolo = document.getElementById('mans-edit-ruolo').value;
+  const turno = document.getElementById('mans-edit-turno').value;
+  const testo = document.getElementById('mans-edit-testo').value.trim();
+  if (!testo) return;
+  const data = mansLoad();
+  if (!data[ruolo]) data[ruolo] = {};
+  if (!data[ruolo][turno]) data[ruolo][turno] = [];
+  data[ruolo][turno].push(testo);
+  mansSave(data);
+  document.getElementById('mans-edit-testo').value = '';
+  mansRenderEditList();
+  mansRenderList(ruolo, turno);
+}
+
+function mansDeleteTask(ruolo, turno, idx) {
+  const data = mansLoad();
+  data[ruolo][turno].splice(idx, 1);
+  mansSave(data);
+  mansRenderEditList();
+  mansRenderList(ruolo, turno);
+}
+
+function mansTab(tab, el) {
+  document.querySelectorAll('.mans-tab').forEach(t => {
+    t.style.borderBottomColor = 'transparent';
+    t.style.color = 'var(--text2)';
+  });
+  el.style.borderBottomColor = 'var(--accent)';
+  el.style.color = 'var(--accent)';
+  document.querySelectorAll('.mans-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('mans-' + tab).style.display = 'block';
+  if (tab === 'guida') mansRenderGuida();
+  if (tab === 'modifica') { mansRenderEditList(); document.getElementById('mans-edit-ruolo').onchange = mansRenderEditList; document.getElementById('mans-edit-turno').onchange = mansRenderEditList; }
+}
+
+async function mansInit() {
+  for (const r of ['sala','cucina']) {
+    for (const t of ['apertura','serale','chiusura']) {
+      await mansRenderList(r,t);
+    }
+  }
+}
+
+const _origGoTo = goTo;
+goTo = function(page, el) {
+  _origGoTo(page, el);
+  if (page === 'mansionario') setTimeout(mansInit, 50);
+};
+</script>
+</body>
+</html>
