@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#7a2e0e">
+<meta property="og:title" content="Prenota da Mi Ricriju">
+<meta property="og:description" content="Prenota il tuo tavolo al ristorante Mi Ricriju a Camigliatello Silano">
+<title>Prenota — Mi Ricriju</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --accent:#7a2e0e;--accent-d:#5c2008;--accent-l:#fdf3e7;--accent-border:#e8c9a0;
+  --bg:#fdf8f0;--surface:#fff;--border:#ede5d8;--border2:#d6c9b8;
+  --text:#2c1a0e;--text2:#7a6555;--text3:#b0a090;
+  --green:#2d7a4f;--green-l:#edf7f2;--green-b:#a8d9be;
+  --red:#c0392b;
+  font-family:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HERO */
+.hero{background:var(--accent);padding:32px 20px 28px;text-align:center}
+.hero-logo{width:140px;height:84px;object-fit:cover;border-radius:14px;margin-bottom:16px}
+.hero-title{font-size:26px;font-weight:700;color:#fff;margin-bottom:6px}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.75)}
+
+/* CONTAINER */
+.container{max-width:520px;margin:0 auto;padding:24px 16px 40px}
+
+/* STEPS */
+.steps{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:28px}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid var(--border2);color:var(--text3);background:var(--bg);transition:all .3s}
+.step-dot.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.step-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.step-label{font-size:10px;color:var(--text3);font-weight:500}
+.step-dot.active + .step-label,.step-dot.done + .step-label{color:var(--accent)}
+.step-line{width:40px;height:2px;background:var(--border);margin-bottom:16px;transition:background .3s}
+.step-line.done{background:var(--green)}
+
+/* CARD */
+.card{background:var(--surface);border-radius:16px;border:1px solid var(--border);padding:22px 20px;margin-bottom:16px}
+.card-title{font-size:16px;font-weight:600;margin-bottom:16px}
+
+/* FIELDS */
+.field{margin-bottom:14px}
+.field-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.04em}
+.field-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--bg);outline:none;transition:border .2s;-webkit-appearance:none}
+.field-input:focus{border-color:var(--accent);background:var(--surface)}
+textarea.field-input{resize:vertical;min-height:80px;line-height:1.5}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* COPERTI BUTTONS */
+.coperti-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.cop-btn{padding:10px 4px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text2);text-align:center}
+.cop-btn.active{border-color:var(--accent);background:var(--accent-l);color:var(--accent)}
+.cop-btn:active{transform:scale(.95)}
+
+/* ORARI */
+.orari-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ora-btn{padding:10px 4px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text2);text-align:center}
+.ora-btn.active{border-color:var(--accent);background:var(--accent-l);color:var(--accent)}
+.ora-btn:active{transform:scale(.95)}
+
+/* BTN */
+.btn-primary{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px}
+.btn-primary:active{background:var(--accent-d)}
+.btn-primary:disabled{background:var(--border2);cursor:not-allowed}
+.btn-secondary{width:100%;padding:13px;background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;margin-top:8px}
+
+/* RIEPILOGO */
+.riepilogo-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}
+.riepilogo-row:last-child{border-bottom:none}
+.riepilogo-label{color:var(--text2)}
+.riepilogo-value{font-weight:500}
+
+/* SUCCESS */
+.success-wrap{text-align:center;padding:20px 0}
+.success-icon{font-size:60px;margin-bottom:16px}
+.success-title{font-size:22px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:20px}
+.success-card{background:var(--accent-l);border:1px solid var(--accent-border);border-radius:12px;padding:16px;text-align:left;margin-bottom:20px}
+.success-card-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+
+/* INFO BAR */
+.info-bar{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.info-icon{font-size:20px;flex-shrink:0}
+.info-text{font-size:13px;color:var(--text2);line-height:1.5}
+
+/* ERROR */
+.error-msg{font-size:13px;color:var(--red);margin-top:8px;min-height:18px;text-align:center}
+
+@media(max-width:400px){
+  .orari-grid{grid-template-columns:repeat(3,1fr)}
+  .coperti-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <img src="data:image/jpeg;base64,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" class="hero-logo" alt="Mi Ricriju">
+  <div class="hero-title">Prenota il tuo tavolo</div>
+  <div class="hero-sub">Mi Ricriju — Camigliatello Silano</div>
+</div>
+
+<div class="container">
+
+  <!-- STEP INDICATOR -->
+  <div class="steps" id="steps-indicator">
+    <div class="step">
+      <div class="step-dot active" id="step-dot-1">1</div>
+      <div class="step-label">Dettagli</div>
+    </div>
+    <div class="step-line" id="step-line-1"></div>
+    <div class="step">
+      <div class="step-dot" id="step-dot-2">2</div>
+      <div class="step-label">Data e ora</div>
+    </div>
+    <div class="step-line" id="step-line-2"></div>
+    <div class="step">
+      <div class="step-dot" id="step-dot-3">3</div>
+      <div class="step-label">Conferma</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: DATI CLIENTE -->
+  <div id="view-step1">
+    <div class="info-bar">
+      <div class="info-icon">ℹ️</div>
+      <div class="info-text">La prenotazione sarà confermata dal locale via telefono o WhatsApp.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">I tuoi dati</div>
+      <div class="field">
+        <label class="field-label">Nome e cognome *</label>
+        <input type="text" id="inp-nome" class="field-input" placeholder="Es: Mario Rossi" autocomplete="name">
+      </div>
+      <div class="field">
+        <label class="field-label">Numero di telefono *</label>
+        <input type="tel" id="inp-tel" class="field-input" placeholder="Es: 333 123 4567" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label class="field-label">Quante persone?</label>
+        <div class="coperti-grid" id="coperti-grid">
+          <button class="cop-btn" onclick="setCoperti(1)">1</button>
+          <button class="cop-btn active" onclick="setCoperti(2)">2</button>
+          <button class="cop-btn" onclick="setCoperti(3)">3</button>
+          <button class="cop-btn" onclick="setCoperti(4)">4</button>
+          <button class="cop-btn" onclick="setCoperti(5)">5</button>
+          <button class="cop-btn" onclick="setCoperti(6)">6</button>
+          <button class="cop-btn" onclick="setCoperti(8)">8</button>
+          <button class="cop-btn" onclick="setCoperti(10)">10</button>
+          <button class="cop-btn" onclick="setCoperti(12)">12</button>
+          <button class="cop-btn" id="cop-altro" onclick="showCopertiCustom()">+</button>
+        </div>
+        <input type="number" id="inp-coperti-custom" class="field-input" placeholder="Numero di persone" style="display:none;margin-top:10px" min="1" max="50">
+      </div>
+    </div>
+    <div class="error-msg" id="err-step1"></div>
+    <button class="btn-primary" onclick="goStep2()">Continua →</button>
+  </div>
+
+  <!-- STEP 2: DATA E ORA -->
+  <div id="view-step2" style="display:none">
+    <div class="card">
+      <div class="card-title">Quando vuoi venire?</div>
+      <div class="field">
+        <label class="field-label">Data</label>
+        <input type="date" id="inp-data" class="field-input">
+      </div>
+      <div class="field">
+        <label class="field-label">Orario</label>
+        <div class="orari-grid" id="orari-grid">
+          <button class="ora-btn" onclick="setOrario('12:00')">12:00</button>
+          <button class="ora-btn" onclick="setOrario('12:30')">12:30</button>
+          <button class="ora-btn" onclick="setOrario('13:00')">13:00</button>
+          <button class="ora-btn" onclick="setOrario('13:30')">13:30</button>
+          <button class="ora-btn" onclick="setOrario('19:00')">19:00</button>
+          <button class="ora-btn" onclick="setOrario('19:30')">19:30</button>
+          <button class="ora-btn active" onclick="setOrario('20:00')">20:00</button>
+          <button class="ora-btn" onclick="setOrario('20:30')">20:30</button>
+          <button class="ora-btn" onclick="setOrario('21:00')">21:00</button>
+          <button class="ora-btn" onclick="setOrario('21:30')">21:30</button>
+          <button class="ora-btn" onclick="setOrario('22:00')">22:00</button>
+          <button class="ora-btn" onclick="setOrario('22:30')">22:30</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Note o richieste speciali</label>
+        <textarea id="inp-note" class="field-input" placeholder="Es: Compleanno, allergie, tavolo esterno, seggiolone..."></textarea>
+      </div>
+    </div>
+    <div class="error-msg" id="err-step2"></div>
+    <button class="btn-primary" onclick="goStep3()">Continua →</button>
+    <button class="btn-secondary" onclick="goStep1()">← Indietro</button>
+  </div>
+
+  <!-- STEP 3: RIEPILOGO E CONFERMA -->
+  <div id="view-step3" style="display:none">
+    <div class="card">
+      <div class="card-title">Riepilogo prenotazione</div>
+      <div class="riepilogo-row"><span class="riepilogo-label">Nome</span><span class="riepilogo-value" id="rie-nome"></span></div>
+      <div class="riepilogo-row"><span class="riepilogo-label">Telefono</span><span class="riepilogo-value" id="rie-tel"></span></div>
+      <div class="riepilogo-row"><span class="riepilogo-label">Data</span><span class="riepilogo-value" id="rie-data"></span></div>
+      <div class="riepilogo-row"><span class="riepilogo-label">Orario</span><span class="riepilogo-value" id="rie-orario"></span></div>
+      <div class="riepilogo-row"><span class="riepilogo-label">Persone</span><span class="riepilogo-value" id="rie-coperti"></span></div>
+      <div class="riepilogo-row" id="rie-note-row" style="display:none"><span class="riepilogo-label">Note</span><span class="riepilogo-value" id="rie-note" style="max-width:200px;text-align:right"></span></div>
+    </div>
+    <div class="info-bar">
+      <div class="info-icon">📞</div>
+      <div class="info-text">Riceverai una conferma via telefono o WhatsApp entro breve. La prenotazione non è definitiva finché non viene confermata dal locale.</div>
+    </div>
+    <div class="error-msg" id="err-step3"></div>
+    <button class="btn-primary" id="btn-invia" onclick="inviaPren()">Invia prenotazione</button>
+    <button class="btn-secondary" onclick="goStep2()">← Modifica</button>
+  </div>
+
+  <!-- SUCCESS -->
+  <div id="view-success" style="display:none">
+    <div class="success-wrap">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Richiesta inviata!</div>
+      <div class="success-sub">La tua prenotazione è stata ricevuta. Ti contatteremo a breve per confermarla.</div>
+      <div class="success-card">
+        <div class="success-card-title">Riepilogo</div>
+        <div class="riepilogo-row"><span class="riepilogo-label">Nome</span><span class="riepilogo-value" id="suc-nome"></span></div>
+        <div class="riepilogo-row"><span class="riepilogo-label">Data</span><span class="riepilogo-value" id="suc-data"></span></div>
+        <div class="riepilogo-row"><span class="riepilogo-label">Orario</span><span class="riepilogo-value" id="suc-orario"></span></div>
+        <div class="riepilogo-row" style="border:none"><span class="riepilogo-label">Persone</span><span class="riepilogo-value" id="suc-coperti"></span></div>
+      </div>
+      <div style="font-size:13px;color:var(--text3)">Vi aspettiamo da Mi Ricriju!</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SUPA_URL = 'https://hlzaghdjqwxijogunans.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhsemFnaGRqcXd4aWpvZ3VuYW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzg1MjYsImV4cCI6MjA4ODkxNDUyNn0.jy3EFJw7G50Z7NFETU3Z-NojJlcJePXMuVpBZieuz8U';
+const SUPA_H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' };
+
+var selectedCoperti = 2;
+var selectedOrario = '20:00';
+
+// Set min date to today
+var today = new Date().toISOString().slice(0,10);
+document.getElementById('inp-data').min = today;
+document.getElementById('inp-data').value = today;
+
+function setCoperti(n) {
+  selectedCoperti = n;
+  document.querySelectorAll('.cop-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.cop-btn').forEach(function(b){
+    if (b.textContent == n) b.classList.add('active');
+  });
+  document.getElementById('inp-coperti-custom').style.display = 'none';
+}
+
+function showCopertiCustom() {
+  document.querySelectorAll('.cop-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('cop-altro').classList.add('active');
+  var inp = document.getElementById('inp-coperti-custom');
+  inp.style.display = 'block';
+  inp.focus();
+  inp.oninput = function() { selectedCoperti = parseInt(this.value)||0; };
+}
+
+function setOrario(o) {
+  selectedOrario = o;
+  document.querySelectorAll('.ora-btn').forEach(function(b){
+    b.classList.toggle('active', b.textContent === o);
+  });
+}
+
+function goStep1() {
+  show('view-step1');
+  setStepUI(1);
+}
+
+function goStep2() {
+  var nome = document.getElementById('inp-nome').value.trim();
+  var tel = document.getElementById('inp-tel').value.trim();
+  var err = document.getElementById('err-step1');
+  if (!nome) { err.textContent = 'Inserisci il tuo nome.'; return; }
+  if (!tel || tel.replace(/[^0-9]/g,'').length < 9) { err.textContent = 'Inserisci un numero di telefono valido.'; return; }
+  if (!selectedCoperti) { err.textContent = 'Seleziona il numero di persone.'; return; }
+  err.textContent = '';
+  show('view-step2');
+  setStepUI(2);
+}
+
+function goStep3() {
+  var data = document.getElementById('inp-data').value;
+  var err = document.getElementById('err-step2');
+  if (!data) { err.textContent = 'Seleziona una data.'; return; }
+  if (!selectedOrario) { err.textContent = 'Seleziona un orario.'; return; }
+  err.textContent = '';
+
+  // Popola riepilogo
+  var d = new Date(data + 'T12:00:00');
+  var gg = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  var mm = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  var dataFmt = gg[d.getDay()] + ' ' + d.getDate() + ' ' + mm[d.getMonth()] + ' ' + d.getFullYear();
+  var note = document.getElementById('inp-note').value.trim();
+
+  document.getElementById('rie-nome').textContent = document.getElementById('inp-nome').value.trim();
+  document.getElementById('rie-tel').textContent = document.getElementById('inp-tel').value.trim();
+  document.getElementById('rie-data').textContent = dataFmt;
+  document.getElementById('rie-orario').textContent = selectedOrario;
+  document.getElementById('rie-coperti').textContent = selectedCoperti + (selectedCoperti === 1 ? ' persona' : ' persone');
+  if (note) {
+    document.getElementById('rie-note').textContent = note;
+    document.getElementById('rie-note-row').style.display = 'flex';
+  } else {
+    document.getElementById('rie-note-row').style.display = 'none';
+  }
+
+  show('view-step3');
+  setStepUI(3);
+}
+
+async function inviaPren() {
+  var btn = document.getElementById('btn-invia');
+  var err = document.getElementById('err-step3');
+  btn.disabled = true;
+  btn.textContent = 'Invio in corso...';
+
+  var nome = document.getElementById('inp-nome').value.trim();
+  var tel = document.getElementById('inp-tel').value.trim();
+  var data = document.getElementById('inp-data').value;
+  var note = document.getElementById('inp-note').value.trim();
+
+  try {
+    var res = await fetch(SUPA_URL + '/rest/v1/prenotazioni', {
+      method: 'POST',
+      headers: Object.assign({}, SUPA_H, { 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({
+        nome: nome,
+        telefono: tel,
+        data: data,
+        orario: selectedOrario,
+        coperti: String(selectedCoperti),
+        note: (note ? '[ONLINE] ' + note : '[ONLINE]')
+      })
+    });
+
+    if (res.ok || res.status === 201) {
+      // Success
+      var d = new Date(data + 'T12:00:00');
+      var gg = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+      var mm = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+      document.getElementById('suc-nome').textContent = nome;
+      document.getElementById('suc-data').textContent = gg[d.getDay()] + ' ' + d.getDate() + ' ' + mm[d.getMonth()];
+      document.getElementById('suc-orario').textContent = selectedOrario;
+      document.getElementById('suc-coperti').textContent = selectedCoperti + (selectedCoperti===1?' persona':' persone');
+      show('view-success');
+      document.getElementById('steps-indicator').style.display = 'none';
+    } else {
+      err.textContent = 'Errore durante l'invio. Riprova o chiamaci direttamente.';
+      btn.disabled = false;
+      btn.textContent = 'Invia prenotazione';
+    }
+  } catch(e) {
+    err.textContent = 'Errore di connessione. Controlla internet e riprova.';
+    btn.disabled = false;
+    btn.textContent = 'Invia prenotazione';
+  }
+}
+
+function show(id) {
+  ['view-step1','view-step2','view-step3','view-success'].forEach(function(v){
+    document.getElementById(v).style.display = v===id ? 'block' : 'none';
+  });
+}
+
+function setStepUI(n) {
+  [1,2,3].forEach(function(i) {
+    var dot = document.getElementById('step-dot-'+i);
+    if (i < n) { dot.className='step-dot done'; dot.textContent='✓'; }
+    else if (i === n) { dot.className='step-dot active'; dot.textContent=i; }
+    else { dot.className='step-dot'; dot.textContent=i; }
+  });
+  [1,2].forEach(function(i) {
+    document.getElementById('step-line-'+i).className = 'step-line' + (i<n?' done':'');
+  });
+}
+</script>
+</body>
+</html>
