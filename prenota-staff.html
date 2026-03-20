@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#7a2e0e">
+<title>Nuova Prenotazione — Staff</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --accent:#7a2e0e;--accent-d:#5c2008;--accent-l:#fdf3e7;--accent-border:#e8c9a0;
+  --bg:#fdf8f0;--surface:#fff;--border:#ede5d8;--border2:#d6c9b8;
+  --text:#2c1a0e;--text2:#7a6555;--text3:#b0a090;
+  --green:#2d7a4f;--green-l:#edf7f2;--green-b:#a8d9be;
+  --blue:#1a5fa8;--blue-l:#edf4fc;--blue-b:#aecef0;
+  --red:#c0392b;--red-l:#fdf0ee;
+  font-family:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+
+.header{background:var(--accent);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.header img{width:36px;height:22px;object-fit:cover;border-radius:6px}
+.header-title{font-size:16px;font-weight:700;color:#fff}
+.header-sub{font-size:12px;color:rgba(255,255,255,.7)}
+
+.container{max-width:480px;margin:0 auto;padding:20px 16px 40px}
+
+.badge{border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;display:none;align-items:center;gap:10px}
+.badge.show{display:flex}
+.badge.abituale{background:var(--green-l);border:1px solid var(--green-b);color:var(--green)}
+.badge.nuovo{background:var(--blue-l);border:1px solid var(--blue-b);color:var(--blue)}
+.badge.blacklist{background:var(--red-l);border:1px solid #f4a4a4;color:var(--red)}
+
+.card{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:18px 16px;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.04em}
+.field-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--bg);outline:none;transition:border .2s;-webkit-appearance:none}
+.field-input:focus{border-color:var(--accent);background:var(--surface)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.coperti-row{display:flex;gap:6px;flex-wrap:wrap}
+.cop-btn{padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s}
+.cop-btn.active{border-color:var(--accent);background:var(--accent-l);color:var(--accent)}
+
+.btn-primary{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-primary:active{background:var(--accent-d)}
+.btn-primary:disabled{background:var(--border2);cursor:not-allowed}
+
+.success{display:none;text-align:center;padding:30px 0}
+.success-icon{font-size:56px;margin-bottom:14px}
+.success-title{font-size:20px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.6}
+.success-detail{background:var(--accent-l);border:1px solid var(--accent-border);border-radius:12px;padding:14px;text-align:left;margin-bottom:20px}
+.detail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--accent-border);font-size:13px}
+.detail-row:last-child{border:none}
+.btn-altro{width:100%;padding:13px;background:transparent;color:var(--accent);border:1.5px solid var(--accent-border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
+
+.error-msg{font-size:13px;color:var(--red);text-align:center;margin-top:8px;min-height:16px}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2c1a0e;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="data:image/jpeg;base64,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" alt="Mi Ricriju">
+  <div>
+    <div class="header-title">Nuova prenotazione</div>
+    <div class="header-sub">Uso interno staff</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- FORM -->
+  <div id="view-form">
+    <div id="cliente-badge" class="badge"></div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label">Nome cliente *</label>
+        <input type="text" id="inp-nome" class="field-input" placeholder="Es: Mario Rossi" autocomplete="off" oninput="checkCliente(this.value)">
+      </div>
+      <div class="field">
+        <label class="field-label">Telefono</label>
+        <input type="tel" id="inp-tel" class="field-input" placeholder="Es: 333 1234567" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field field-grid">
+        <div>
+          <label class="field-label">Data *</label>
+          <input type="date" id="inp-data" class="field-input">
+        </div>
+        <div>
+          <label class="field-label">Orario *</label>
+          <input type="time" id="inp-orario" class="field-input" value="20:00">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Coperti</label>
+        <div class="coperti-row">
+          <button class="cop-btn" onclick="setCop(1)">1</button>
+          <button class="cop-btn active" onclick="setCop(2)">2</button>
+          <button class="cop-btn" onclick="setCop(3)">3</button>
+          <button class="cop-btn" onclick="setCop(4)">4</button>
+          <button class="cop-btn" onclick="setCop(5)">5</button>
+          <button class="cop-btn" onclick="setCop(6)">6</button>
+          <button class="cop-btn" onclick="setCop(8)">8</button>
+          <button class="cop-btn" onclick="setCop(10)">10</button>
+          <button class="cop-btn" id="cop-custom-btn" onclick="showCustomCop()">+</button>
+        </div>
+        <input type="number" id="inp-cop-custom" class="field-input" placeholder="Numero coperti" style="display:none;margin-top:8px" min="1">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label class="field-label">Note</label>
+        <input type="text" id="inp-note" class="field-input" placeholder="Es: Compleanno, allergie, tavolo esterno...">
+      </div>
+    </div>
+
+    <div class="error-msg" id="err-msg"></div>
+    <button class="btn-primary" id="btn-salva" onclick="salva()">Salva prenotazione</button>
+  </div>
+
+  <!-- SUCCESS -->
+  <div id="view-success" class="success">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Prenotazione salvata!</div>
+    <div class="success-sub">La prenotazione è stata registrata con successo.</div>
+    <div class="success-detail">
+      <div class="detail-row"><span style="color:var(--text2)">Nome</span><span id="suc-nome" style="font-weight:500"></span></div>
+      <div class="detail-row"><span style="color:var(--text2)">Data</span><span id="suc-data" style="font-weight:500"></span></div>
+      <div class="detail-row"><span style="color:var(--text2)">Orario</span><span id="suc-orario" style="font-weight:500"></span></div>
+      <div class="detail-row"><span style="color:var(--text2)">Persone</span><span id="suc-cop" style="font-weight:500"></span></div>
+    </div>
+    <button class="btn-altro" onclick="nuova()">+ Altra prenotazione</button>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://hlzaghdjqwxijogunans.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhsemFnaGRqcXd4aWpvZ3VuYW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzg1MjYsImV4cCI6MjA4ODkxNDUyNn0.jy3EFJw7G50Z7NFETU3Z-NojJlcJePXMuVpBZieuz8U';
+const SUPA_H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json' };
+
+var selectedCop = 2;
+var prenData = [];
+var blData = [];
+
+// Set today as default
+var today = new Date().toISOString().slice(0,10);
+document.getElementById('inp-data').value = today;
+document.getElementById('inp-data').min = today;
+
+// Load existing data for cliente check
+async function loadData() {
+  try {
+    var r1 = await fetch(SUPA_URL + '/rest/v1/prenotazioni?select=nome,telefono,data&order=data.desc&limit=500', { headers: SUPA_H });
+    var r2 = await fetch(SUPA_URL + '/rest/v1/blacklist?select=nome,telefono,motivo', { headers: SUPA_H });
+    prenData = await r1.json();
+    blData = await r2.json();
+    if (!Array.isArray(prenData)) prenData = [];
+    if (!Array.isArray(blData)) blData = [];
+  } catch(e) {}
+}
+loadData();
+
+function normName(s) { return (s||'').toLowerCase().trim().replace(/\s+/g,' ').split(' ').sort().join(' '); }
+
+function checkCliente(val) {
+  var badge = document.getElementById('cliente-badge');
+  var v = normName(val);
+  if (v.length < 2) { badge.className='badge'; return; }
+  var tel = document.getElementById('inp-tel').value.replace(/[^0-9]/g,'');
+  // Check blacklist
+  var ban = blData.find(function(b){ return normName(b.nome)===v || (tel.length>5 && (b.telefono||'').replace(/[^0-9]/g,'')===tel); });
+  if (ban) {
+    badge.className = 'badge blacklist show';
+    badge.innerHTML = '<span style="font-size:18px">⛔</span><strong>BLACKLIST</strong> — ' + (ban.motivo||'');
+    return;
+  }
+  // Check abituale
+  var storico = prenData.filter(function(p){ return normName(p.nome)===v || (tel.length>5 && (p.telefono||'').replace(/[^0-9]/g,'')===tel); });
+  if (storico.length > 0) {
+    var ultima = storico[0];
+    var d = new Date(ultima.data+'T12:00:00');
+    badge.className = 'badge abituale show';
+    badge.innerHTML = '<span>✓</span><span><strong>Cliente abituale</strong> — ' + storico.length + ' prenotazion' + (storico.length===1?'e':'i') + '. Ultima: ' + d.toLocaleDateString('it-IT',{day:'numeric',month:'long'}) + '</span>';
+  } else {
+    badge.className = 'badge nuovo show';
+    badge.innerHTML = '<span>★</span><span>Nuovo cliente</span>';
+  }
+}
+
+function setCop(n) {
+  selectedCop = n;
+  document.querySelectorAll('.cop-btn').forEach(function(b){ b.classList.remove('active'); });
+  event.target.classList.add('active');
+  document.getElementById('inp-cop-custom').style.display = 'none';
+}
+
+function showCustomCop() {
+  document.querySelectorAll('.cop-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('cop-custom-btn').classList.add('active');
+  var inp = document.getElementById('inp-cop-custom');
+  inp.style.display = 'block';
+  inp.focus();
+  inp.oninput = function(){ selectedCop = parseInt(this.value)||0; };
+}
+
+async function salva() {
+  var nome = document.getElementById('inp-nome').value.trim();
+  var tel = document.getElementById('inp-tel').value.trim();
+  var data = document.getElementById('inp-data').value;
+  var orario = document.getElementById('inp-orario').value;
+  var note = document.getElementById('inp-note').value.trim();
+  var err = document.getElementById('err-msg');
+
+  if (!nome) { err.textContent='Inserisci il nome del cliente.'; return; }
+  if (!data) { err.textContent='Inserisci la data.'; return; }
+  if (!orario) { err.textContent='Inserisci orario.'; return; }
+  if (!selectedCop) { err.textContent='Seleziona il numero di coperti.'; return; }
+  err.textContent = '';
+
+  var btn = document.getElementById('btn-salva');
+  btn.disabled = true; btn.textContent = 'Salvataggio...';
+
+  try {
+    var res = await fetch(SUPA_URL + '/rest/v1/prenotazioni', {
+      method: 'POST',
+      headers: Object.assign({}, SUPA_H, { 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({ nome:nome, telefono:tel, data:data, orario:orario, coperti:String(selectedCop), note:note })
+    });
+
+    if (res.ok || res.status === 201) {
+      var d = new Date(data+'T12:00:00');
+      var gg = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+      var mm = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+      document.getElementById('suc-nome').textContent = nome;
+      document.getElementById('suc-data').textContent = gg[d.getDay()] + ' ' + d.getDate() + ' ' + mm[d.getMonth()];
+      document.getElementById('suc-orario').textContent = orario;
+      document.getElementById('suc-cop').textContent = selectedCop + (selectedCop===1?' persona':' persone');
+      document.getElementById('view-form').style.display = 'none';
+      document.getElementById('view-success').style.display = 'block';
+    } else {
+      err.textContent = 'Errore nel salvataggio. Riprova.';
+    }
+  } catch(e) {
+    err.textContent = 'Errore di connessione. Controlla internet.';
+  }
+  btn.disabled = false; btn.textContent = 'Salva prenotazione';
+}
+
+function nuova() {
+  document.getElementById('view-success').style.display = 'none';
+  document.getElementById('view-form').style.display = 'block';
+  document.getElementById('inp-nome').value = '';
+  document.getElementById('inp-tel').value = '';
+  document.getElementById('inp-note').value = '';
+  document.getElementById('inp-data').value = today;
+  document.getElementById('inp-orario').value = '20:00';
+  document.getElementById('cliente-badge').className = 'badge';
+  selectedCop = 2;
+  document.querySelectorAll('.cop-btn').forEach(function(b,i){ b.classList.toggle('active',i===1); });
+  document.getElementById('inp-cop-custom').style.display = 'none';
+  document.getElementById('err-msg').textContent = '';
+}
+</script>
+</body>
+</html>
